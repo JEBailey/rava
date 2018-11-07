@@ -18,13 +18,8 @@
  */
 /* eslint-env es6, browser */
 (function() {
-
-    if (rava) {
-        return;
-    }
     var rava = {};
     var tagSelectors = {};
-    var debug = true;
     var elementMap = new WeakMap ();
 
     if (!Element.prototype.matches) {
@@ -41,18 +36,28 @@
             console.log ("storing selector" + selector);
         }
         tagSelectors[selector] = config;
-        var foundItems = document.querySelectorAll (selector);
-        if (foundItems) {
-            foundItems.forEach (function(node) {
-                wrap (node, config);
-            });
-        }
+        document.querySelectorAll (selector).forEach (function(node) {
+            wrap (node, config);
+        });
     };
 
     new MutationObserver (function(mutations) {
         mutations.forEach (function(mutation) {
             mutation.addedNodes.forEach (function(node) {
-                checkAll (node);
+                var checkSet = new Set ();
+                checkSet.add (node);
+                checkSet.forEach (function(foundElement) {
+                    if (foundElement.querySelectorAll) {
+                        check (foundElement);
+                    }
+                    var foundElements = foundElement.children;
+                    if (foundElements) {
+                        for (var i = 0; i < foundElements.length; i++) {
+                            checkSet.add (foundElements[i]);
+                        }
+                    }
+                    checkSet["delete"] (foundElement);
+                });
             });
         });
     }).observe (document.body, {
@@ -92,6 +97,9 @@
         if (config.callbacks) {
             if (config.callbacks.created) {
                 config.callbacks.created.call (node);
+            }
+            if (config.callbacks.added) {
+                config.callbacks.added.call (node);
             }
         }
     };
@@ -137,35 +145,12 @@
         }
     };
 
-    var checkAll = function(node) {
-        var checkSet = new Set ();
-        checkSet.add (node);
-        checkSet.forEach (function(foundElement) {
-            if (foundElement.querySelectorAll) {
-                check (foundElement);
-            }
-            var foundElements = foundElement.children;
-            if (foundElements) {
-                for (var i = 0; i < foundElements.length; i++) {
-                    checkSet.add (foundElements[i]);
-                }
-            }
-            checkSet["delete"] (foundElement);
-        });
-    }
-
     var check = function(node) {
         for ( var selector in tagSelectors) {
             var found = false;
-            if (debug) {
-                console.log ("checking nodes for " + selector);
-            }
             if (node.matches (selector)) {
                 found = true;
                 wrap (node, tagSelectors[selector]);
-            }
-            if (found && debug) {
-                console.log ("node found for " + selector);
             }
         }
     };
