@@ -32,9 +32,6 @@
     }
 
     rava.decorate = function(selector, config) {
-        if (debug) {
-            console.log ("storing selector" + selector);
-        }
         tagSelectors[selector] = config;
         document.querySelectorAll (selector).forEach (function(node) {
             wrap (node, config);
@@ -165,4 +162,4 @@
         window.rava = rava;
     }
 
-}) ();
+})();
