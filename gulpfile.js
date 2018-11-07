@@ -22,15 +22,18 @@ var paths = {
     core : 'index.js'
 };
 
-gulp.task ('base', function() {
+gulp.task ('core', function() {
     return gulp.src (paths.core)
     .pipe (concat ('rava.js'))
     .pipe (gulp.dest ('dist/'));
 });
 
-gulp.task ('min', function() {
+gulp.task ('minify', function() {
     return gulp.src (paths.core)
     .pipe (uglify ())
     .pipe (concat ('rava.min.js'))
     .pipe (gulp.dest ('dist/'));
+});
+
+gulp.task ('default',['core','minify'], function() {
 });
