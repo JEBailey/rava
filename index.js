@@ -45,7 +45,11 @@
                 checkSet.add (node);
                 checkSet.forEach (function(foundElement) {
                     if (foundElement.querySelectorAll) {
-                        check (foundElement);
+                        for ( var selector in tagSelectors) {
+                            if (foundElement.matches (selector)) {
+                                wrap (foundElement, tagSelectors[selector]);
+                            }
+                        }
                     }
                     var foundElements = foundElement.children;
                     if (foundElements) {
@@ -71,6 +75,9 @@
             elementMap.set (node, configSet);
         }
         if (configSet.has (config)) {
+            if (config.callbacks.added) {
+                config.callbacks.added.call (node);
+            }
             return;
         }
         configSet.add (config);
@@ -101,8 +108,6 @@
         }
     };
 
-    // generic function to wrap the event handler in the case that
-    // we only want it to fire for a specific child event
     var targetedEventHandler = function(fn, correctTarget, data) {
         return function(event) {
             if (!event.target.matches (correctTarget)) {
@@ -142,16 +147,6 @@
         }
     };
 
-    var check = function(node) {
-        for ( var selector in tagSelectors) {
-            var found = false;
-            if (node.matches (selector)) {
-                found = true;
-                wrap (node, tagSelectors[selector]);
-            }
-        }
-    };
-
     if (typeof define === 'function' && define.amd) {
         define (rava);
     } else if (typeof module !== 'undefined' && module.exports) {
@@ -161,5 +156,4 @@
     } else {
         window.rava = rava;
     }
-
 })();
