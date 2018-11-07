@@ -22,7 +22,9 @@
   },
   "keywords": [
     "dynamic-content",
-    "microjs"
+    "microjs",
+    "custom-elements",
+    "customelements"
   ],
   "author": "Jason E Bailey <jason.bailey@24601.org> (http://www.ravajs.com)"
 }
