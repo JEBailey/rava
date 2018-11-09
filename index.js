@@ -37,6 +37,13 @@
             wrap (node, config);
         });
     };
+    
+    rava.wrap = function(func) {
+        var now = this;
+        return function(){
+            func.apply(now,arguments);
+        }
+    }
 
     new MutationObserver (function(mutations) {
         mutations.forEach (function(mutation) {
