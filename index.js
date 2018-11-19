@@ -82,7 +82,7 @@
             elementMap.set (node, configSet);
         }
         if (configSet.has (config)) {
-            if (config.callbacks.added) {
+            if (config.callbacks && config.callbacks.added) {
                 config.callbacks.added.call (node);
             }
             return;
