@@ -1,7 +1,7 @@
 {
   "name": "rava",
   "description": "The Rava core library",
-  "version": "1.1.0",
+  "version": "1.2.0-beta",
   "homepage": "http://www.ravajs.com",
   "license": "Apache-2.0",
   "repository": {
