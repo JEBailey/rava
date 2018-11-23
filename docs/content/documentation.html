@@ -1,0 +1,38 @@
+<div class="content">
+    <h1 class="title is-1">Rava Methods</h1>
+    <h2 class="title is-2">decorate</h2>
+    <h3 class="title is-3">signature</h3>
+    <pre>Rava.decorate(selector,ravaConfigObject)</pre>
+    <h3 class="title is-3">parameters</h3>
+    <h4 class="title is-4">selector</h4>
+    <p>The first parameter for the decorate method is a css selector string. This is used to identify whether any element,
+         either current or future, are elements that we should decorate.<br><br> Examples of valid selectors are;</p>
+         <ul>
+             <li>"#nav li"</li>
+             <li>".burger"</li>
+             <li>"rava-time"</li>
+         </ul>
+    <h4 class="title is-4">ravaConfigObject</h4>
+    <p>The default config Object is</p>
+    <pre>
+{
+    callbacks: {
+        created:
+        added:
+        removed:
+    },
+    methods: {
+        methodName: functionDefinition(){}
+    },
+    events:{
+        eventName: functionDefinition(){},
+        selector: {
+            eventName : functionDefinition(){}
+        }
+    },
+    data: {}
+}        
+    </pre>
+    <h5 class="title is-5">callbacks</h5>
+    callbacks are event listeners that are tied to the lifecycle of the configuration object.
+</div>

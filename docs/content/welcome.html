@@ -1,0 +1,51 @@
+<div class="content">
+    <p>RavaJS is a small and efficient library that allows you to add new functionality and callbacks to HTML whether
+        that HTML is currently on the page or not.</p>
+
+    <h2>How to start</h2>
+    <h3>Setup</h3>
+    <pre class="prettyprint lang-html">
+
+&lt;script src="https://cdn.jsdelivr.net/npm/rava@1.0.0/dist/rava.min.js"&gt;&lt;/script&gt;
+            </pre>
+    <h3>Usage</h2>
+        <p>Now you can use css selectors to find html elements and add new functionality</p>
+        <pre class="prettyprint lang-js">
+rava.decorate('rava-time',{
+    callbacks:{
+        created: function(){
+            this.start();
+        }
+    },
+    methods : {
+        start : function() {
+            this.tick();
+            this.__timeInterval = setInterval(this.tick.bind(this),1000);
+        },
+        stop : function() {
+            this.__timeInterval = clearInterval(this.__timeInterval);
+        },
+        tick : function() {
+            this.textContent = new Date().toLocaleTimeString();
+        }
+    },
+    events : {
+        click : function() {
+            if (this.__timeInterval){
+                this.stop();
+            } else {
+                this.start();
+            }
+        }
+    }
+});
+        </pre>
+        Combined with some HTML
+        <pre class="prettyprint lang-js">
+            &lt;h2>"The time" she opined ,"is now &lt;rava-time>&lt;/rava-time>"&lt;/h2>
+        </pre>
+        Creates
+        <blockquote>
+            <h2>"The time" she opined ,"is now <rava-time></rava-time>"</h2>
+        </blockquote>
+</div>
