@@ -37,36 +37,11 @@
             wrap (node, config);
         });
     };
-    
-    rava.wrap = function(func) {
-        var now = this;
-        return function(){
-            func.apply(now,arguments);
-        }
-    }
 
     new MutationObserver (function(mutations) {
         mutations.forEach (function(mutation) {
-            mutation.addedNodes.forEach (function(node) {
-                var checkSet = new Set ();
-                checkSet.add (node);
-                checkSet.forEach (function(foundElement) {
-                    if (foundElement.querySelectorAll) {
-                        for ( var selector in tagSelectors) {
-                            if (foundElement.matches (selector)) {
-                                wrap (foundElement, tagSelectors[selector]);
-                            }
-                        }
-                    }
-                    var foundElements = foundElement.children;
-                    if (foundElements) {
-                        for (var i = 0; i < foundElements.length; i++) {
-                            checkSet.add (foundElements[i]);
-                        }
-                    }
-                    checkSet["delete"] (foundElement);
-                });
-            });
+            traverse(mutation.addedNodes,wrap);
+            traverse(mutation.removedNodes,remove);
         });
     }).observe (document.body, {
         attributes : false,
@@ -75,6 +50,29 @@
         characterData : false
     });
 
+    var traverse = function(nodeList, callback){
+        nodeList.forEach (function(node){
+            var checkSet = new Set ();
+            checkSet.add (node);
+            checkSet.forEach (function(foundElement) {
+                if (foundElement.querySelectorAll) {
+                    for ( var selector in tagSelectors) {
+                        if (foundElement.matches (selector)) {
+                            callback (foundElement, tagSelectors[selector]);
+                        }
+                    }
+                }
+                var foundElements = foundElement.children;
+                if (foundElements) {
+                    for (var i = 0; i < foundElements.length; i++) {
+                        checkSet.add (foundElements[i]);
+                    }
+                }
+                checkSet["delete"] (foundElement);
+            });
+        });
+    };
+
     var wrap = function(node, config) {
         var configSet = elementMap.get (node);
         if (!configSet) {
@@ -82,14 +80,14 @@
             elementMap.set (node, configSet);
         }
         if (configSet.has (config)) {
-            if (config.callbacks.added) {
+            if (config.callbacks && config.callbacks.added) {
                 config.callbacks.added.call (node);
             }
             return;
         }
         configSet.add (config);
+
         var names = Object.getOwnPropertyNames (config);
-        var keys = Object.keys (config);
         var data = config.data;
         names.forEach (function(name) {
             if (name === "constructor") {
@@ -101,9 +99,9 @@
             if (name === "methods") {
                 handleMethods (node, config[name]);
             }
-        });
-        keys.forEach (function(key) {
-            node[key] = config[key];
+            if (name === "data") {
+                node.data = config.data;
+            }
         });
         if (config.callbacks) {
             if (config.callbacks.created) {
@@ -112,6 +110,19 @@
             if (config.callbacks.added) {
                 config.callbacks.added.call (node);
             }
+        }
+    };
+
+    var remove = function(node,config){
+        var configSet = elementMap.get (node);
+        if (!configSet) {
+            return;
+        }
+        if (configSet.has (config)) {
+            if (config.callbacks && config.callbacks.removed) {
+                config.callbacks.removed.call (node);
+            }
+            return;
         }
     };
 
@@ -126,7 +137,7 @@
 
     var handleMethods = function(node, funcs) {
         for ( var funcName in funcs) {
-            node[funcName] = funcs[funcName];
+            node[funcName] = funcs[funcName].bind(node);
         }
     };
 
