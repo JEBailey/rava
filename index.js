@@ -20,7 +20,6 @@
 (function() {
     var rava = {};
     var tagSelectors = {};
-    var elementMap = new WeakMap ();
 
     if (!Element.prototype.matches) {
         Element.prototype.matches = Element.prototype.msMatchesSelector;
@@ -40,8 +39,8 @@
 
     new MutationObserver (function(mutations) {
         mutations.forEach (function(mutation) {
-            traverse(mutation.addedNodes,wrap);
-            traverse(mutation.removedNodes,remove);
+            traverse(mutation.addedNodes,added);
+            traverse(mutation.removedNodes,removed);
         });
     }).observe (document.body, {
         attributes : false,
@@ -55,13 +54,7 @@
             var checkSet = new Set ();
             checkSet.add (node);
             checkSet.forEach (function(foundElement) {
-                if (foundElement.querySelectorAll) {
-                    for ( var selector in tagSelectors) {
-                        if (foundElement.matches (selector)) {
-                            callback (foundElement, tagSelectors[selector]);
-                        }
-                    }
-                }
+                callback (foundElement);
                 var foundElements = foundElement.children;
                 if (foundElements) {
                     for (var i = 0; i < foundElements.length; i++) {
@@ -73,11 +66,34 @@
         });
     };
 
+    var added = function(foundElement){
+        if (foundElement.matches) {
+            for ( var selector in tagSelectors) {
+                if (foundElement.matches (selector)) {
+                    wrap (foundElement, tagSelectors[selector]);
+                }
+            }
+        }
+    };
+
+    var removed = function(node){
+        var configSet = node["x-rava"];
+        if (!configSet) {
+            return;
+        }
+        configSet.forEach(function(config){
+            if (config.callbacks && config.callbacks.removed) {
+                config.callbacks.removed.call (node);
+            }
+            return;
+        });
+    };
+
     var wrap = function(node, config) {
-        var configSet = elementMap.get (node);
+        var configSet = node["x-rava"];
         if (!configSet) {
             configSet = new Set ();
-            elementMap.set (node, configSet);
+            node["x-rava"] = configSet;
         }
         if (configSet.has (config)) {
             if (config.callbacks && config.callbacks.added) {
@@ -110,19 +126,6 @@
             if (config.callbacks.added) {
                 config.callbacks.added.call (node);
             }
-        }
-    };
-
-    var remove = function(node,config){
-        var configSet = elementMap.get (node);
-        if (!configSet) {
-            return;
-        }
-        if (configSet.has (config)) {
-            if (config.callbacks && config.callbacks.removed) {
-                config.callbacks.removed.call (node);
-            }
-            return;
         }
     };
 
