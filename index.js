@@ -37,10 +37,22 @@
         });
     };
 
+    rava.query = function(node, selector){
+        var response = [];
+        traverse(node,function(foundNode){
+            if (foundNode.matches){
+                if (foundNode.matches(selector)){
+                    response.push(foundNode);
+                }
+            } 
+        });
+        return response;
+    }
+
     new MutationObserver (function(mutations) {
         mutations.forEach (function(mutation) {
-            traverse(mutation.addedNodes,added);
-            traverse(mutation.removedNodes,removed);
+            traverseNodeList(mutation.addedNodes,added);
+            traverseNodeList(mutation.removedNodes,removed);
         });
     }).observe (document.body, {
         attributes : false,
@@ -49,20 +61,24 @@
         characterData : false
     });
 
-    var traverse = function(nodeList, callback){
+    var traverseNodeList = function(nodeList, callback){
         nodeList.forEach (function(node){
-            var checkSet = new Set ();
-            checkSet.add (node);
-            checkSet.forEach (function(foundElement) {
-                callback (foundElement);
-                var foundElements = foundElement.children;
-                if (foundElements) {
-                    for (var i = 0; i < foundElements.length; i++) {
-                        checkSet.add (foundElements[i]);
-                    }
+            traverse(node,callback);
+        });
+    };
+
+    var traverse = function(node, callback){
+        var checkSet = new Set ();
+        checkSet.add (node);
+        checkSet.forEach (function(foundElement) {
+            callback (foundElement);
+            var foundElements = foundElement.children;
+            if (foundElements) {
+                for (var i = 0; i < foundElements.length; i++) {
+                    checkSet.add (foundElements[i]);
                 }
-                checkSet["delete"] (foundElement);
-            });
+            }
+            checkSet["delete"] (foundElement);
         });
     };
 
@@ -92,7 +108,7 @@
     var wrap = function(node, config) {
         var configSet = node["x-rava"];
         if (!configSet) {
-            configSet = new Set ();
+            configSet = new Set();
             node["x-rava"] = configSet;
         }
         if (configSet.has (config)) {
@@ -147,9 +163,8 @@
     var registerEventHandlers = function(node, data, events) {
         for ( var eventName in events) {
             var possibleFunc = events[eventName];
-            var targetNode = node;
             if (typeof possibleFunc !== "object") {
-                targetNode.addEventListener (eventName, function(event) {
+                node.addEventListener (eventName, function(event) {
                     possibleFunc.call (node, event, data);
                 });
             } else {
@@ -157,7 +172,7 @@
                 for ( var childEventName in possibleFunc) {
                     var func = targetedEventHandler (
                             possibleFunc[childEventName], selector, data);
-                    targetNode.addEventListener (childEventName, (function(
+                            node.addEventListener (childEventName, (function(
                             func, node, data) {
                         return function(event) {
                             func.call (node, event, data);

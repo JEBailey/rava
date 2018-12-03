@@ -1,7 +1,7 @@
 rava.decorate("#nav li",{
     events:{
         click: function(event) {
-            this.parentElement.querySelectorAll(":scope li").forEach(element => {
+            rava.query(this.parentElement,"li").forEach(function(element) {
                 element.classList.remove("is-active");
             });
             this.classList.add("is-active");
@@ -14,7 +14,7 @@ rava.decorate("section.hero",{
         "#nav li *" : {
             click: function(event) {
                 var targetId = event.target.closest("li").dataset.target;
-                var tabs = this.querySelectorAll(":scope .tab-pane");
+                var tabs = rava.query(this.parentElement,".tab-pane");
                 tabs.forEach(function(tab) {
                     if (tab.id == targetId) {
                       tab.style.display = "block";
