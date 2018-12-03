@@ -1,6 +1,8 @@
 <div class="content">
-    <h1 class="title is-1">Rava Methods</h1>
-    <h2 class="title is-2">decorate</h2>
+    <h1 class="title is-1">Rava</h1>
+    <h3 class="subtitle is-3" id="rave methods">Methods</h3>
+    <p> Rava has two methods, the first is the <a href="#decorate">decorate</a> method which allows you to assign a rava configuration object to an element based on it's css selector. The second is the utility method called <a href="#query">query</a> which allows you to do a search for child nodes of an element that matches a selector</p>
+    <h2 class="title is-2" id="decorate">decorate</h2>
     <h3 class="title is-3">signature</h3>
     <pre>Rava.decorate(selector,ravaConfigObject)</pre>
     <h3 class="title is-3">parameters</h3>
@@ -33,6 +35,16 @@
     data: {}
 }        
     </pre>
-    <h5 class="title is-5">callbacks</h5>
-    callbacks are event listeners that are tied to the lifecycle of the configuration object.
+    <h5 class="title is-5">Callbacks</h5>
+    <p>Callbacks are event listeners that are tied to the lifecycle of the configuration object.</p>
+    <table class=".table">
+        <thead><th>Event</th><th>Cause</th></thead>
+        <tbody>
+            <tr><td>created</td><td>immediately after the configuration object has been merged into the matched element</td></tr>
+            <tr><td>added</td><td>immediately after the created callback occurs, and then every time the node element is attached to the dom tree</td></tr>
+            <tr><td>removed</td><td>after the element has been detached from the node tree</td></tr>
+        </tbody>
+    </table>
+    <h5 class="title is-5">Methods</h5>
+    <h2 class="title is-2" id="query">query</h2>
 </div>
