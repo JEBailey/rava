@@ -20,7 +20,6 @@
 (function() {
     var rava = {};
     var tagSelectors = {};
-    var elementMap = new WeakMap ();
 
     if (!Element.prototype.matches) {
         Element.prototype.matches = Element.prototype.msMatchesSelector;
@@ -38,10 +37,22 @@
         });
     };
 
+    rava.query = function(node, selector){
+        var response = [];
+        traverse(node,function(foundNode){
+            if (foundNode.matches){
+                if (foundNode.matches(selector)){
+                    response.push(foundNode);
+                }
+            } 
+        });
+        return response;
+    }
+
     new MutationObserver (function(mutations) {
         mutations.forEach (function(mutation) {
-            traverse(mutation.addedNodes,wrap);
-            traverse(mutation.removedNodes,remove);
+            traverseNodeList(mutation.addedNodes,added);
+            traverseNodeList(mutation.removedNodes,removed);
         });
     }).observe (document.body, {
         attributes : false,
@@ -50,34 +61,55 @@
         characterData : false
     });
 
-    var traverse = function(nodeList, callback){
+    var traverseNodeList = function(nodeList, callback){
         nodeList.forEach (function(node){
-            var checkSet = new Set ();
-            checkSet.add (node);
-            checkSet.forEach (function(foundElement) {
-                if (foundElement.querySelectorAll) {
-                    for ( var selector in tagSelectors) {
-                        if (foundElement.matches (selector)) {
-                            callback (foundElement, tagSelectors[selector]);
-                        }
-                    }
+            traverse(node,callback);
+        });
+    };
+
+    var traverse = function(node, callback){
+        var checkSet = new Set ();
+        checkSet.add (node);
+        checkSet.forEach (function(foundElement) {
+            callback (foundElement);
+            var foundElements = foundElement.children;
+            if (foundElements) {
+                for (var i = 0; i < foundElements.length; i++) {
+                    checkSet.add (foundElements[i]);
                 }
-                var foundElements = foundElement.children;
-                if (foundElements) {
-                    for (var i = 0; i < foundElements.length; i++) {
-                        checkSet.add (foundElements[i]);
-                    }
+            }
+            checkSet["delete"] (foundElement);
+        });
+    };
+
+    var added = function(foundElement){
+        if (foundElement.matches) {
+            for ( var selector in tagSelectors) {
+                if (foundElement.matches (selector)) {
+                    wrap (foundElement, tagSelectors[selector]);
                 }
-                checkSet["delete"] (foundElement);
-            });
+            }
+        }
+    };
+
+    var removed = function(node){
+        var configSet = node["x-rava"];
+        if (!configSet) {
+            return;
+        }
+        configSet.forEach(function(config){
+            if (config.callbacks && config.callbacks.removed) {
+                config.callbacks.removed.call (node);
+            }
+            return;
         });
     };
 
     var wrap = function(node, config) {
-        var configSet = elementMap.get (node);
+        var configSet = node["x-rava"];
         if (!configSet) {
-            configSet = new Set ();
-            elementMap.set (node, configSet);
+            configSet = new Set();
+            node["x-rava"] = configSet;
         }
         if (configSet.has (config)) {
             if (config.callbacks && config.callbacks.added) {
@@ -113,19 +145,6 @@
         }
     };
 
-    var remove = function(node,config){
-        var configSet = elementMap.get (node);
-        if (!configSet) {
-            return;
-        }
-        if (configSet.has (config)) {
-            if (config.callbacks && config.callbacks.removed) {
-                config.callbacks.removed.call (node);
-            }
-            return;
-        }
-    };
-
     var targetedEventHandler = function(fn, correctTarget, data) {
         return function(event) {
             if (!event.target.matches (correctTarget)) {
@@ -144,9 +163,8 @@
     var registerEventHandlers = function(node, data, events) {
         for ( var eventName in events) {
             var possibleFunc = events[eventName];
-            var targetNode = node;
             if (typeof possibleFunc !== "object") {
-                targetNode.addEventListener (eventName, function(event) {
+                node.addEventListener (eventName, function(event) {
                     possibleFunc.call (node, event, data);
                 });
             } else {
@@ -154,7 +172,7 @@
                 for ( var childEventName in possibleFunc) {
                     var func = targetedEventHandler (
                             possibleFunc[childEventName], selector, data);
-                    targetNode.addEventListener (childEventName, (function(
+                            node.addEventListener (childEventName, (function(
                             func, node, data) {
                         return function(event) {
                             func.call (node, event, data);
