@@ -11,9 +11,9 @@ rava.decorate("#nav li",{
 
 rava.decorate("section.hero",{
     events:{
-        "#nav li *" : {
+        "#nav li" : {
             click: function(event) {
-                var targetId = event.target.closest("li").dataset.target;
+                var targetId = event.currentTarget.dataset.target;
                 var tabs = rava.query(this.parentElement,".tab-pane");
                 tabs.forEach(function(tab) {
                     if (tab.id == targetId) {
