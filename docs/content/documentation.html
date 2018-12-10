@@ -1,50 +1,12 @@
 <div class="content">
-    <h1 class="title is-1">Rava</h1>
-    <h3 class="subtitle is-3" id="rave methods">Methods</h3>
-    <p> Rava has two methods, the first is the <a href="#decorate">decorate</a> method which allows you to assign a rava configuration object to an element based on it's css selector. The second is the utility method called <a href="#query">query</a> which allows you to do a search for child nodes of an element that matches a selector</p>
-    <h2 class="title is-2" id="decorate">decorate</h2>
-    <h3 class="title is-3">signature</h3>
-    <pre>Rava.decorate(selector,ravaConfigObject)</pre>
-    <h3 class="title is-3">parameters</h3>
-    <h4 class="title is-4">selector</h4>
-    <p>The first parameter for the decorate method is a css selector string. This is used to identify whether any element,
-         either current or future, are elements that we should decorate.<br><br> Examples of valid selectors are;</p>
-         <ul>
-             <li>"#nav li"</li>
-             <li>".burger"</li>
-             <li>"rava-time"</li>
-         </ul>
-    <h4 class="title is-4">ravaConfigObject</h4>
-    <p>The default config Object is</p>
-    <pre>
-{
-    callbacks: {
-        created:
-        added:
-        removed:
-    },
-    methods: {
-        methodName: functionDefinition(){}
-    },
-    events:{
-        eventName: functionDefinition(){},
-        selector: {
-            eventName : functionDefinition(){}
-        }
-    },
-    data: {}
-}        
-    </pre>
-    <h5 class="title is-5">Callbacks</h5>
-    <p>Callbacks are event listeners that are tied to the lifecycle of the configuration object.</p>
-    <table class=".table">
-        <thead><th>Event</th><th>Cause</th></thead>
-        <tbody>
-            <tr><td>created</td><td>immediately after the configuration object has been merged into the matched element</td></tr>
-            <tr><td>added</td><td>immediately after the created callback occurs, and then every time the node element is attached to the dom tree</td></tr>
-            <tr><td>removed</td><td>after the element has been detached from the node tree</td></tr>
-        </tbody>
-    </table>
-    <h5 class="title is-5">Methods</h5>
-    <h2 class="title is-2" id="query">query</h2>
+    <h3 class="title is-3" id="bind">bind</h3>
+    <h5 class="subtitle is-5">configuration assignment</h5>
+    <p> Rava uses the <em>bind</em> method to associate a configuration object with all elements on a page that matches the CSS selector string</p>
+    <p> In addition, the configuration is registered so that any elements that are later added to the page will be processed with the same configuration </p>
+    <h3 class="title is-3" id="find">find</h3>
+    <h5 class="subtitle is-5">scoped search by CSS selector</h5>
+    <p> <em>find</em> traverses the children of the given element and finds the first matching element</p>
+    <h3 class="title is-3" id="find">findAll</h3>
+    <h5 class="subtitle is-5">scoped search by CSS selector</h5>
+    <p> <em>findAll</em> traverses the children of the given element and finds all of the matching elements</p>
 </div>

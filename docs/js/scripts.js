@@ -1,7 +1,7 @@
-rava.decorate("#nav li",{
+rava.bind("#nav li",{
     events:{
         click: function(event) {
-            rava.query(this.parentElement,"li").forEach(function(element) {
+            rava.findAll(this.parentElement,"li").forEach(function(element) {
                 element.classList.remove("is-active");
             });
             this.classList.add("is-active");
@@ -9,12 +9,12 @@ rava.decorate("#nav li",{
     }
 });
 
-rava.decorate("section.hero",{
+rava.bind("section.hero",{
     events:{
         "#nav li" : {
             click: function(event) {
                 var targetId = event.currentTarget.dataset.target;
-                var tabs = rava.query(this.parentElement,".tab-pane");
+                var tabs = rava.findAll(this.parentElement,".tab-pane");
                 tabs.forEach(function(tab) {
                     if (tab.id == targetId) {
                       tab.style.display = "block";
@@ -29,7 +29,7 @@ rava.decorate("section.hero",{
     }
 });
 
-rava.decorate(".burger", {
+rava.bind(".burger", {
     callbacks: {
         created : function(){
             this.burgerTarget = document.querySelector('#'+this.dataset.target);
@@ -43,7 +43,7 @@ rava.decorate(".burger", {
     }
 });
 
-rava.decorate(".remote-content", {
+rava.bind(".remote-content", {
     callbacks: {
         created : function(){
             var currentElement = this;
@@ -60,7 +60,7 @@ rava.decorate(".remote-content", {
 });
 
 //first rava example
-rava.decorate('rava-time',{
+rava.bind('rava-time',{
     callbacks:{
         created: function(){
             this.start();

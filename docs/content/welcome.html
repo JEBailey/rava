@@ -18,7 +18,7 @@ rava.decorate('rava-time',{
     methods : {
         start : function() {
             this.tick();
-            this.__timeInterval = setInterval(this.tick.bind(this),1000);
+            this.__timeInterval = setInterval(this.tick,1000);
         },
         stop : function() {
             this.__timeInterval = clearInterval(this.__timeInterval);

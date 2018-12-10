@@ -33,7 +33,7 @@
     rava.decorate = function(selector, config) {
         tagSelectors[selector] = config;
         document.querySelectorAll (selector).forEach (function(node) {
-            wrap (node, config);
+            wrap (node, selector);
         });
     };
 
@@ -86,7 +86,7 @@
         if (foundElement.matches) {
             for ( var selector in tagSelectors) {
                 if (foundElement.matches (selector)) {
-                    wrap (foundElement, tagSelectors[selector]);
+                    wrap (foundElement, selector);
                 }
             }
         }
@@ -105,7 +105,8 @@
         });
     };
 
-    var wrap = function(node, config) {
+    var wrap = function(node, selector) {
+        var config = tagSelectors[selector];
         var configSet = node["x-rava"];
         if (!configSet) {
             configSet = new Set();
@@ -117,16 +118,16 @@
             }
             return;
         }
+
         configSet.add (config);
 
         var names = Object.getOwnPropertyNames (config);
-        var data = config.data;
         names.forEach (function(name) {
             if (name === "constructor") {
                 return;
             }
             if (name === "events") {
-                registerEventHandlers (node, data, config[name]);
+                registerEventHandlers (node, config, selector);
             }
             if (name === "methods") {
                 handleMethods (node, config[name]);
@@ -160,25 +161,22 @@
         }
     };
 
-    var registerEventHandlers = function(node, data, events) {
+    var registerEventHandlers = function(node, config, selector) {
+        var events = config.events;
+        var data = config.data;
+        var target = config.target || node;
         for ( var eventName in events) {
             var possibleFunc = events[eventName];
             if (typeof possibleFunc !== "object") {
                 node.addEventListener (eventName, function(event) {
-                    possibleFunc.call (node, event, data);
+                    possibleFunc.call (target, event, data);
                 });
             } else {
-                var selector = eventName;
-                for ( var childEventName in possibleFunc) {
-                    var func = targetedEventHandler (
-                            possibleFunc[childEventName], selector, data);
-                            node.addEventListener (childEventName, (function(
-                            func, node, data) {
-                        return function(event) {
-                            func.call (node, event, data);
-                        }
-                    }) (func, node, data));
-                }
+                var extendedSelector = selector + " " + eventName;
+                var config = {};
+                config.target = node;
+                config.events = possibleFunc;
+                rava.decorate(extendedSelector, config);
             }
         }
     };
