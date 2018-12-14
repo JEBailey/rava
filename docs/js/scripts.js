@@ -11,7 +11,10 @@ rava.bind("#nav li",{
 
 rava.bind("section.hero",{
     events:{
-        "#nav li" : {
+        // :scope is used here to limit which list items we're interested in.
+        // In Rava the :scope keyword is replaced by the existing selector
+        // this is done due to inconsistent handling of :scope. i.e. I hate IE
+        ":scope #nav li" : {
             click: function(event) {
                 var targetId = event.currentTarget.dataset.target;
                 var tabs = rava.findAll(this.parentElement,".tab-pane");

@@ -160,7 +160,7 @@
                     possibleFunc.call (target, event, data);
                 });
             } else {
-                var extendedSelector = selector + " " + eventName;
+                var extendedSelector = eventName.replace(":scope",selector);
                 var config = {};
                 config.target = node;
                 config.events = possibleFunc;

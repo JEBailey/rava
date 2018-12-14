@@ -18,33 +18,35 @@
  */
 /* eslint-env es6, browser */
 (function() {
+    "use strict";
     var rava = {};
     var tagSelectors = {};
 
-    if (!Element.prototype.matches) {
-        Element.prototype.matches = Element.prototype.msMatchesSelector;
-    }
+    var matches = Element.prototype.matches || Element.prototype.msMatchesSelector;
+    var forEach = NodeList.prototype.forEach || Array.prototype.forEach;
 
-    if (typeof NodeList.prototype.forEach !== "function"
-            && typeof Array.prototype.forEach === "function") {
-        NodeList.prototype.forEach = Array.prototype.forEach;
-    }
-
-    rava.decorate = function(selector, config) {
+    rava.bind = function(selector, config) {
         tagSelectors[selector] = config;
-        document.querySelectorAll (selector).forEach (function(node) {
+        forEach.call(document.querySelectorAll (selector),function(node) {
             wrap (node, selector);
         });
     };
 
-    rava.query = function(node, selector){
+    rava.find = function(element, selector){
+        traverse(element,function(el){
+            if (matches.call(el,selector)){
+                return el;
+            }
+        });
+        return null;
+    }
+
+    rava.findAll = function(element, selector){
         var response = [];
-        traverse(node,function(foundNode){
-            if (foundNode.matches){
-                if (foundNode.matches(selector)){
-                    response.push(foundNode);
-                }
-            } 
+        traverse(element,function(el){
+            if (matches.call(el,selector)){
+                response.push(el);
+            }
         });
         return response;
     }
@@ -62,44 +64,40 @@
     });
 
     var traverseNodeList = function(nodeList, callback){
-        nodeList.forEach (function(node){
-            traverse(node,callback);
-        });
-    };
-
-    var traverse = function(node, callback){
-        var checkSet = new Set ();
-        checkSet.add (node);
-        checkSet.forEach (function(foundElement) {
-            callback (foundElement);
-            var foundElements = foundElement.children;
-            if (foundElements) {
-                for (var i = 0; i < foundElements.length; i++) {
-                    checkSet.add (foundElements[i]);
-                }
+        forEach.call(nodeList,function(node){
+            if (node.nodeType == Node.ELEMENT_NODE) {
+                traverse(node,callback);
             }
-            checkSet["delete"] (foundElement);
         });
     };
 
-    var added = function(foundElement){
-        if (foundElement.matches) {
-            for ( var selector in tagSelectors) {
-                if (foundElement.matches (selector)) {
-                    wrap (foundElement, selector);
-                }
+    var traverse = function(element, callback){
+        var checkSet = new Set ();
+        checkSet.add (element);
+        checkSet.forEach (function(el) {
+            callback (el);
+            for (var i = 0; i < el.children.length; i++) {
+                checkSet.add (el.children[i]);
+            }
+            checkSet["delete"] (el);
+        });
+    };
+
+    var added = function(element){
+        for ( var selector in tagSelectors) {
+            if (matches.call(element,selector)) {
+                wrap (element, selector);
             }
         }
     };
 
-    var removed = function(node){
-        var configSet = node["x-rava"];
-        if (!configSet) {
+    var removed = function(element){
+        if (!element["x-rava"]) {
             return;
         }
-        configSet.forEach(function(config){
+        element["x-rava"].forEach(function(config){
             if (config.callbacks && config.callbacks.removed) {
-                config.callbacks.removed.call (node);
+                config.callbacks.removed.call (element);
             }
             return;
         });
@@ -121,8 +119,7 @@
 
         configSet.add (config);
 
-        var names = Object.getOwnPropertyNames (config);
-        names.forEach (function(name) {
+        Object.getOwnPropertyNames(config).forEach (function(name) {
             if (name === "constructor") {
                 return;
             }
@@ -146,15 +143,6 @@
         }
     };
 
-    var targetedEventHandler = function(fn, correctTarget, data) {
-        return function(event) {
-            if (!event.target.matches (correctTarget)) {
-                return;
-            }
-            fn.call (this, event, data);
-        };
-    };
-
     var handleMethods = function(node, funcs) {
         for ( var funcName in funcs) {
             node[funcName] = funcs[funcName].bind(node);
@@ -172,11 +160,11 @@
                     possibleFunc.call (target, event, data);
                 });
             } else {
-                var extendedSelector = selector + " " + eventName;
+                var extendedSelector = eventName.replace(":scope",selector);
                 var config = {};
                 config.target = node;
                 config.events = possibleFunc;
-                rava.decorate(extendedSelector, config);
+                rava.bind(extendedSelector, config);
             }
         }
     };
