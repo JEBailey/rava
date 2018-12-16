@@ -20,114 +20,123 @@
 (function() {
     "use strict";
     var rava = {};
-    var tagSelectors = {};
+    var tagSelectors = new Map();
 
-    var matches = Element.prototype.matches || Element.prototype.msMatchesSelector;
+    var matches = Element.prototype.matches
+            || Element.prototype.msMatchesSelector;
     var forEach = NodeList.prototype.forEach || Array.prototype.forEach;
 
     rava.bind = function(selector, config) {
-        tagSelectors[selector] = config;
-        forEach.call(document.querySelectorAll (selector),function(node) {
-            wrap (node, selector);
+        var tagSet = tagSelectors.get(selector);
+        if (!tagSet) {
+            tagSet = new Set();
+            tagSelectors.set(selector, tagSet);
+        }
+        tagSet.add(config);
+        forEach.call(document.querySelectorAll(selector), function(node) {
+            wrap(node, selector, config);
         });
     };
 
-    rava.find = function(element, selector){
-        traverse(element,function(el){
-            if (matches.call(el,selector)){
+    rava.find = function(element, selector) {
+        traverse(element, function(el) {
+            if (matches.call(el, selector)) {
                 return el;
             }
         });
         return null;
     }
 
-    rava.findAll = function(element, selector){
+    rava.findAll = function(element, selector) {
         var response = [];
-        traverse(element,function(el){
-            if (matches.call(el,selector)){
+        traverse(element, function(el) {
+            if (matches.call(el, selector)) {
                 response.push(el);
             }
         });
         return response;
     }
 
-    new MutationObserver (function(mutations) {
-        mutations.forEach (function(mutation) {
-            traverseNodeList(mutation.addedNodes,added);
-            traverseNodeList(mutation.removedNodes,removed);
+    new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            traverseNodeList(mutation.addedNodes, added);
+            traverseNodeList(mutation.removedNodes, removed);
         });
-    }).observe (document.body, {
+    }).observe(document.body, {
         attributes : false,
         childList : true,
         subtree : true,
         characterData : false
     });
 
-    var traverseNodeList = function(nodeList, callback){
-        forEach.call(nodeList,function(node){
+    var traverseNodeList = function(nodeList, callback) {
+        forEach.call(nodeList, function(node) {
             if (node.nodeType == Node.ELEMENT_NODE) {
-                traverse(node,callback);
+                traverse(node, callback);
             }
         });
     };
 
-    var traverse = function(element, callback){
-        var checkSet = new Set ();
-        checkSet.add (element);
-        checkSet.forEach (function(el) {
-            callback (el);
+    var traverse = function(element, callback) {
+        var checkSet = new Set();
+        checkSet.add(element);
+        checkSet.forEach(function(el) {
+            callback(el);
             for (var i = 0; i < el.children.length; i++) {
-                checkSet.add (el.children[i]);
+                checkSet.add(el.children[i]);
             }
-            checkSet["delete"] (el);
+            checkSet["delete"](el);
         });
     };
 
-    var added = function(element){
-        for ( var selector in tagSelectors) {
-            if (matches.call(element,selector)) {
-                wrap (element, selector);
+    var added = function(element) {
+        tagSelectors.forEach(function(sets, selector) {
+            if (matches.call(element, selector)) {
+                sets.forEach(function(config) {
+                    if (matches.call(element, selector)) {
+                        wrap(element, selector, config);
+                    }
+                });
             }
-        }
+        });
     };
 
-    var removed = function(element){
+    var removed = function(element) {
         if (!element["x-rava"]) {
             return;
         }
-        element["x-rava"].forEach(function(config){
+        element["x-rava"].forEach(function(config) {
             if (config.callbacks && config.callbacks.removed) {
-                config.callbacks.removed.call (element);
+                config.callbacks.removed.call(element);
             }
             return;
         });
     };
 
-    var wrap = function(node, selector) {
-        var config = tagSelectors[selector];
+    var wrap = function(node, selector, config) {
         var configSet = node["x-rava"];
         if (!configSet) {
             configSet = new Set();
             node["x-rava"] = configSet;
         }
-        if (configSet.has (config)) {
+        if (configSet.has(config)) {
             if (config.callbacks && config.callbacks.added) {
-                config.callbacks.added.call (node);
+                config.callbacks.added.call(node);
             }
             return;
         }
 
-        configSet.add (config);
+        configSet.add(config);
 
-        Object.getOwnPropertyNames(config).forEach (function(name) {
+        Object.getOwnPropertyNames(config).forEach(function(name) {
             if (name === "constructor") {
                 return;
             }
             if (name === "events") {
-                registerEventHandlers (node, config, selector);
+                registerEventHandlers(node, config, selector);
             }
             if (name === "methods") {
-                handleMethods (node, config[name]);
+                handleMethods(node, config[name]);
             }
             if (name === "data") {
                 node.data = config.data;
@@ -135,10 +144,10 @@
         });
         if (config.callbacks) {
             if (config.callbacks.created) {
-                config.callbacks.created.call (node);
+                config.callbacks.created.call(node);
             }
             if (config.callbacks.added) {
-                config.callbacks.added.call (node);
+                config.callbacks.added.call(node);
             }
         }
     };
@@ -156,21 +165,22 @@
         for ( var eventName in events) {
             var possibleFunc = events[eventName];
             if (typeof possibleFunc !== "object") {
-                node.addEventListener (eventName, function(event) {
-                    possibleFunc.call (target, event, data);
+                node.addEventListener(eventName, function(event) {
+                    possibleFunc.call(target, event, data);
                 });
             } else {
-                var extendedSelector = eventName.replace(":scope",selector);
-                var config = {};
-                config.target = node;
-                config.events = possibleFunc;
-                rava.bind(extendedSelector, config);
+                var extendedSelector = eventName.replace(':scope',selector);
+                var newConfig = {};
+                newConfig.target = node;
+                newConfig.events = possibleFunc;
+                rava.bind(extendedSelector, newConfig);
+                delete config[possibleFunc];
             }
         }
     };
 
     if (typeof define === 'function' && define.amd) {
-        define (rava);
+        define(rava);
     } else if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
             rava : rava
