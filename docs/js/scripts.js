@@ -11,7 +11,7 @@ rava.bind("#nav li",{
 
 rava.bind("section.hero",{
     events:{
-        "#nav li" : {
+        ":scope #nav li" : {
             click: function(event) {
                 var targetId = event.currentTarget.dataset.target;
                 var tabs = rava.findAll(this.parentElement,".tab-pane");
