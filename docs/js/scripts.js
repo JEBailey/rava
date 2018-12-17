@@ -103,3 +103,27 @@ window.onload = function() {
     });
   };
 
+  rava.bind('table',{
+    events : {
+        click : function() {
+            window.alert("clicked");
+        },
+        // :scope is a proper css psuedo-class which defines those elements that are a child of 
+        // the given element. Here however, since support is not universal, a prefix of :scope is
+        // used to trigger a separate process internally to identify the child elements
+        ":scope tbody tr" : {
+            click : function(event){
+                // allthough we have the event listener on the 'tr' element. The callback is executed 
+                // with the 'table' being the scope. To find out which 'tr' element was clicked we
+                // use currentTarget of the event.  
+                var clicked = event.currentTarget;
+                rava.findAll(this,'tr').forEach(function(row){
+                    row.classList.remove('is-selected');
+                });
+                clicked.classList.add('is-selected');
+                // we want to prevent the event bubbling here or it wil be picked up by the other listener
+                event.preventDefault();
+            }
+        }
+    }
+});
