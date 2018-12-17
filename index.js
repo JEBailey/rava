@@ -169,11 +169,18 @@
                     possibleFunc.call(target, event, data);
                 });
             } else {
-                var extendedSelector = eventName.replace(':scope',selector);
+                var scoped = eventName.trim().startsWith(':scope');
+                var extendedSelector = eventName.replace(':scope','').trim();
                 var newConfig = {};
                 newConfig.target = node;
                 newConfig.events = possibleFunc;
-                rava.bind(extendedSelector, newConfig);
+                if (scoped){
+                    rava.findAll(node,extendedSelector).forEach(function(el){
+                       wrap(el, selector, newConfig);
+                    });
+                } else {
+                    rava.bind(extendedSelector, newConfig);
+                }
                 delete config[possibleFunc];
             }
         }
