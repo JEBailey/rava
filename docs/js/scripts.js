@@ -12,7 +12,7 @@ rava.bind("#nav li",{
 rava.bind("section.hero",{
     events:{
         // :scope is used here to limit which list items we're interested in.
-        // In Rava the :scope keyword is replaced by the existing selector
+        // In Rava the :scope keyword triggers a 
         // this is done due to inconsistent handling of :scope. i.e. I hate IE
         ":scope #nav li" : {
             click: function(event) {
@@ -103,26 +103,39 @@ window.onload = function() {
     });
   };
 
-  rava.bind('table',{
+rava.bind('table',{
     events : {
+        // This is an example of direct event handling where the name of the property 
+        // is the event name that is being listened for, in this case, it's the click
+        // event that is being listened for by the table element
+        // This should only fire if you clicked on the table header or footer
         click : function() {
             window.alert("clicked");
         },
         // :scope is a proper css psuedo-class which defines those elements that are a child of 
-        // the given element. Here however, since support is not universal, a prefix of :scope is
-        // used to trigger a separate process internally to identify the child elements
+        // the given element. Here however, since support is not universal, a prefix of :scope
+        // is used to trigger a new scoped binding that is looking for elements beneath the 
+        // target element to be bound to
         ":scope tbody tr" : {
             click : function(event){
-                // allthough we have the event listener on the 'tr' element. The callback is executed 
-                // with the 'table' being the scope. To find out which 'tr' element was clicked we
-                // use currentTarget of the event.  
+                // allthough we have the event listener on the 'tr' element. The callback is
+                // executed with the 'table' being the scope. To find out which 'tr' element
+                // was clicked we use the currentTarget of the event.  
                 var clicked = event.currentTarget;
                 rava.findAll(this,'tr').forEach(function(row){
                     row.classList.remove('is-selected');
                 });
                 clicked.classList.add('is-selected');
-                // we want to prevent the event bubbling here or it wil be picked up by the other listener
-                event.preventDefault();
+                // we want to prevent the event bubbling here or it wil be picked up by the
+                // 'click' listener on the table
+                event.stopPropagation();
+            }
+        },
+        // This is a global intercept. Because no ':scope' is defined, we've created a binding
+        // that will occur anywhere in the document. 
+        ".button" : {
+            click : function(){
+                window.alert("oh my gosh");
             }
         }
     }
