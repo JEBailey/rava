@@ -38,25 +38,6 @@
         });
     };
 
-    rava.find = function(element, selector) {
-        traverse(element, function(el) {
-            if (matches.call(el, selector)) {
-                return el;
-            }
-        });
-        return null;
-    }
-
-    rava.findAll = function(element, selector) {
-        var response = [];
-        traverse(element, function(el) {
-            if (matches.call(el, selector)) {
-                response.push(el);
-            }
-        });
-        return response;
-    }
-
     new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             traverseNodeList(mutation.addedNodes, added);
@@ -114,6 +95,11 @@
     };
 
     var wrap = function(node, selector, config) {
+        if (config.scoped){
+            if(!config.target.contains(node)){
+                return;
+            }
+        }
         var configSet = node["x-rava"];
         if (!configSet) {
             configSet = new Set();
@@ -125,7 +111,6 @@
             }
             return;
         }
-
         configSet.add(config);
 
         Object.getOwnPropertyNames(config).forEach(function(name) {
@@ -137,9 +122,6 @@
             }
             if (name === "methods") {
                 handleMethods(node, config[name]);
-            }
-            if (name === "data") {
-                node.data = config.data;
             }
         });
         if (config.callbacks) {
@@ -160,30 +142,26 @@
 
     var registerEventHandlers = function(node, config, selector) {
         var events = config.events;
-        var data = config.data;
         var target = config.target || node;
         for ( var eventName in events) {
             var possibleFunc = events[eventName];
             if (typeof possibleFunc !== "object") {
-                node.addEventListener(eventName, function(event) {
-                    possibleFunc.call(target, event, data);
-                });
+                node.addEventListener(eventName, getEventHandler(possibleFunc, target));
             } else {
-                var scoped = eventName.trim().startsWith(':scope');
-                var extendedSelector = eventName.replace(':scope','').trim();
                 var newConfig = {};
+                newConfig.scoped = eventName.trim().startsWith(':scope');
                 newConfig.target = node;
                 newConfig.events = possibleFunc;
-                if (scoped){
-                    rava.findAll(node,extendedSelector).forEach(function(el){
-                       wrap(el, selector, newConfig);
-                    });
-                } else {
-                    rava.bind(extendedSelector, newConfig);
-                }
-                delete config[possibleFunc];
+                var extendedSelector = eventName.replace(':scope',selector).trim();
+                rava.bind(extendedSelector, newConfig);
             }
         }
+    };
+
+    var getEventHandler = function(func, target){
+        return function(event){
+            func.call(target,event);
+        };
     };
 
     if (typeof define === 'function' && define.amd) {

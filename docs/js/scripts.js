@@ -147,7 +147,7 @@ rava.bind('modal',{
         },
         // Caution should be taken when doing a global intercept. the following binding will be applied
         // for each element that matches '.modal' in the parent binding.
-        ":root .modal-trigger" : {
+        ".modal-trigger" : {
             click: function () {
                 this.classList.add('is-active');
             }

@@ -142,9 +142,6 @@
             if (name === "methods") {
                 handleMethods(node, config[name]);
             }
-            if (name === "data") {
-                node.data = config.data;
-            }
         });
         if (config.callbacks) {
             if (config.callbacks.created) {
@@ -164,12 +161,11 @@
 
     var registerEventHandlers = function(node, config, selector) {
         var events = config.events;
-        var data = config.data;
         var target = config.target || node;
         for ( var eventName in events) {
             var possibleFunc = events[eventName];
             if (typeof possibleFunc !== "object") {
-                node.addEventListener(eventName, getEventHandler(possibleFunc, target, data));
+                node.addEventListener(eventName, getEventHandler(possibleFunc, target));
             } else {
                 var newConfig = {};
                 newConfig.scoped = eventName.trim().startsWith(':scope');
@@ -181,9 +177,9 @@
         }
     };
 
-    var getEventHandler = function(func, target, data){
+    var getEventHandler = function(func, target){
         return function(event){
-            func.call(target,event,data);
+            func.call(target,event);
         };
     };
 
