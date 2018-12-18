@@ -5,7 +5,7 @@
     <p> Multiple selector/configurations that match a specific element can be bound</p>
     <h3 class="title is-3">Scope</h3>
     <p> All methods that are defined in the configuration object are bound to the element. Meaning that any calls done to these methods uses the element as it's scope</p>
-    <p> This is done to make it easier to write callbacks to these methods from each other and the event handlers, which are similarily bound.
+    <p> This is done to make it easier to write callbacks to these methods from each other and the event handlers, which are similarly bound.
     </p>
     <h3 class="title is-3">Event Handling</h3>
     <p> Events have three forms of declaration; direct, scoped interception, and global interception</p>
@@ -44,7 +44,7 @@ rava.bind('table',{
         },
         // This is a global intercept. Because no ':scope' is defined, we've created a binding
         // that will occur anywhere in the document. 
-        ".button" : {
+        ".button .is-warning" : {
             window.alert("oh my gosh");
         }
     }
@@ -168,7 +168,28 @@ rava.bind('table',{
         </tbody>
       </table>
       <button class="button is-warning">warning</button>
-    <h3 class="title is-3">event interception</h3>
-    <p> Events </p>
-    <h3 class="title is-3">finding elements</h3>
+      <p> Another example of eventing handling</p>
+      <pre class="prettyprint lang-js">
+        rava.bind('modal',{
+            events : {
+                click : function() {
+                    if (this.classList.has('is-active')){
+                        this.classList.remove('is-active');
+                    } else {
+                        this.classList.add('is-active');
+                    }
+                }
+        });
+        </pre>
+        <button class="button modal-trigger is-info">activate modal</button>
+    <modal class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="panel">
+          This is an additional example with a button to drag the modal around.
+          <button class="button is-info">drag me!</button>
+        </div>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </modal>
 </div>

@@ -1,14 +1,3 @@
-rava.bind("#nav li",{
-    events:{
-        click: function(event) {
-            rava.findAll(this.parentElement,"li").forEach(function(element) {
-                element.classList.remove("is-active");
-            });
-            this.classList.add("is-active");
-        }
-    }
-});
-
 rava.bind("section.hero",{
     events:{
         // :scope is used here to limit which list items we're interested in.
@@ -16,8 +5,15 @@ rava.bind("section.hero",{
         // this is done due to inconsistent handling of :scope. i.e. I hate IE
         ":scope #nav li" : {
             click: function(event) {
-                var targetId = event.currentTarget.dataset.target;
-                var tabs = rava.findAll(this.parentElement,".tab-pane");
+                var currentLi = event.currentTarget;
+                rava.findAll(this,"#nav li").forEach(function(element) {
+                    element.classList.remove("is-active");
+                    if (element === currentLi){
+                        element.classList.add("is-active");
+                    }
+                });
+                var targetId = currentLi.dataset.target;
+                var tabs = rava.findAll(this ,".tab-pane");
                 tabs.forEach(function(tab) {
                     if (tab.id == targetId) {
                       tab.style.display = "block";
@@ -133,9 +129,32 @@ rava.bind('table',{
         },
         // This is a global intercept. Because no ':scope' is defined, we've created a binding
         // that will occur anywhere in the document. 
-        ".button" : {
+        ".button.is-warning" : {
             click : function(){
                 window.alert("oh my gosh");
+            }
+        }
+    }
+});
+
+rava.bind('modal',{
+    events : {
+        // This is an example of direct event handling where the name of the property 
+        // is the event name that is being listened for, in this case, it's the click
+        // event that is being listened for by the table element
+        // This should only fire if you clicked on the table header or footer
+        click : function() {
+        },
+        // Caution should be taken when doing a global intercept. the following binding will be applied
+        // for each element that matches '.modal' in the parent binding.
+        ":root .modal-trigger" : {
+            click: function () {
+                this.classList.add('is-active');
+            }
+        },
+        ":scope .modal-close" : {
+            click : function(){
+                this.classList.remove('is-active');
             }
         }
     }
