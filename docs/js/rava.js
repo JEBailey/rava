@@ -161,25 +161,27 @@
 
     var registerEventHandlers = function(node, config, selector) {
         var events = config.events;
+        var data = config.data;
         var target = config.target || node;
         for ( var eventName in events) {
             var possibleFunc = events[eventName];
             if (typeof possibleFunc !== "object") {
-                node.addEventListener(eventName, getEventHandler(possibleFunc, target));
+                node.addEventListener(eventName, getEventHandler(possibleFunc, target, data));
             } else {
                 var newConfig = {};
                 newConfig.scoped = eventName.trim().startsWith(':scope');
                 newConfig.target = node;
                 newConfig.events = possibleFunc;
+                newConfig.data = data;
                 var extendedSelector = eventName.replace(':scope',selector).trim();
                 rava.bind(extendedSelector, newConfig);
             }
         }
     };
 
-    var getEventHandler = function(func, target){
+    var getEventHandler = function(func, target, data){
         return function(event){
-            func.call(target,event);
+            func.call(target,event,data);
         };
     };
 
