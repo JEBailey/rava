@@ -4,22 +4,23 @@ position: relative;
 }
 
 .tab-content {
-padding: 60px;
+padding: 2em;
 top: 197px;
-color: #000;
 background-color: white;
 }
+
+.columns {
+    margin-top:0;
+    background-color: white;
+} 
 
 .tab-pane {
 display: none;
 }
 
+
 .tab-pane.is-active {
 display: block;
-width: 50%;
-position: relative;
-left: 50%;
-transform: translateX(-50%);
 }
 
 .is-active {
