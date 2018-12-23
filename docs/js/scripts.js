@@ -159,3 +159,13 @@ rava.bind('modal',{
         }
     }
 });
+
+rava.bind(".notification",{
+    events:{
+        ".delete" :{
+            click : function(){
+                this.remove();
+            }
+        } 
+    }
+});
