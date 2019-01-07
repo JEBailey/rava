@@ -1,26 +1,42 @@
 rava.bind("section.hero",{
+    callbacks: {
+        ":scope #nav li" : {
+            // by using the selector in the callbacks we are having an event triggered when a new element is added and the 
+            // scope of this event is the original element. In our case '.section.hero' 
+            created: function (data, target){
+                data.navElements  = data.navElements || new Set();
+                data.navElements.add(target);
+            }
+        },
+        ":scope .tab-pane" : {
+            created: function (data, target) {
+                data.paneElements  = data.paneElements || new Set();
+                data.paneElements.add(target);
+            }
+        }
+
+    },
     events:{
         // :scope is used here to limit which list items we're interested in.
         // In Rava the :scope keyword triggers a 
         // this is done due to inconsistent handling of :scope. i.e. I hate IE
         ":scope #nav li" : {
-            click: function(event) {
-                var currentLi = event.currentTarget;
-                rava.findAll(this,"#nav li").forEach(function(element) {
+            // All event signatures are in the form of function(event,data) where
+            // event is the event triggering the function
+            // data is a set of data that is passed along to all handlers
+            // see data handling under concepts
+            click: function(event, data) {
+                data.navElements.forEach(function(element) {
                     element.classList.remove("is-active");
-                    if (element === currentLi){
+                    if (element === event.currentTarget){
                         element.classList.add("is-active");
                     }
                 });
-                var targetId = currentLi.dataset.target;
-                var tabs = rava.findAll(this ,".tab-pane");
-                tabs.forEach(function(tab) {
-                    if (tab.id == targetId) {
-                      tab.style.display = "block";
+                var targetId = event.currentTarget.dataset.target;
+                data.paneElements.forEach(function(tab) {
+                    tab.classList.remove("is-active");
+                    if (tab.id === targetId) {
                       tab.classList.add("is-active");
-                    } else {
-                      tab.style.display = "none";
-                      tab.classList.remove("is-active");
                     }
                 });
             }
@@ -30,7 +46,7 @@ rava.bind("section.hero",{
 
 rava.bind(".burger", {
     callbacks: {
-        created : function(){
+        created: function(){
             this.burgerTarget = document.querySelector('#'+this.dataset.target);
         }
     },

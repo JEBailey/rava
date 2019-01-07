@@ -15,12 +15,12 @@ background-color: white;
 } 
 
 .tab-pane {
-display: none;
+    display: none;
 }
 
 
 .tab-pane.is-active {
-display: block;
+    display: block;
 }
 
 .is-active {
