@@ -1,12 +1,68 @@
 <div class="content">
-    <h3 class="title is-3" id="bind">bind</h3>
-    <h5 class="subtitle is-5"><em>rava.bind(css-selector,configuration-object)</em></h5>
+    <h1 class="title is-1">Rava Methods</h1>
+    <h3 class="title is-3 is-marginless" id="bind">bind</h3>
+    <h5 class="subtitle is-5 is-marginless"><em>rava.bind(css-selector,configuration-object)</em></h5>
+    <h5 class="subtitle is-7"><em>v2.0.0</em></h5>
     <p> Rava uses the <em>bind</em> method to associate a configuration object with all elements on a page that matches the CSS selector string.</p>
     <p> In addition, the configuration is registered so that any elements that are later added to the page will be processed with the same configuration.</p>
-    <h3 class="title is-3" id="find">find</h3>
-    <h5 class="subtitle is-5"><em>rava.find(html-element,css-selector)</em></h5>
+    <h3 class="title is-3 is-marginless" id="find">find</h3>
+    <h5 class="subtitle is-5 is-marginless"><em>rava.find(html-element,css-selector)</em></h5>
+    <h5 class="subtitle is-7"><em>v2.0.0</em></h5>
     <p> <em>find</em> traverses the children of the given element and finds the first matching element. Returns null if no matching element is found</p>
-    <h3 class="title is-3" id="find">findAll</h3>
-    <h5 class="subtitle is-5"><em>rava.findAll(html-element,css-selector)</em></h5>
+    <h3 class="title is-3 is-marginless" id="find">findAll</h3>
+    <h5 class="subtitle is-5 is-marginless"><em>rava.findAll(html-element,css-selector)</em></h5>
+    <h5 class="subtitle is-7">V2.0.0</h5>
     <p> <em>findAll</em> traverses the children of the given element and finds all elements that matches the provided selector. Returns an empty array if no matches are found </p>
+    <h1 class="title is-1">Configuration Object</h1>
+    <pre class="prettyprint lang-js">
+// rava config object is a standard js object with specific keys that are used
+// to configure the selected element
+{
+    // data represents a special object which is handed off to each callback 
+    // and event handler that is defined in the configuration. The data object
+    // is either a state that is unique to the selected root element or a
+    // shared state that is used for all elements that match the root selector
+    data : {}, // object or function
+    // if the data is an object, that object is applied to all selected elements without
+    // any additional changes. if the data field is a function, then the function
+    // is called for each matching root element. 
+
+    callbacks:{
+        // there are three defined callbacks: added, created, and removed.
+        // callbacks are triggered by rava itself as the element is initially
+        // created, added to the dom, and removed from the dom.
+        // 
+        // callbacks support nested selectors, if an object is defined rather
+        // than the three callbacks, the key is then assumed to be a selector
+        // for other elements
+        //  
+        // the signature of a callback is 
+        // function(data,element)
+        // 
+        created: function(){
+            this.start();
+        }
+
+    },
+    methods : {
+        // methods are both moved to, and context bound to the selected element
+        // and do NOT support nested selectors 
+        start : function() {
+        },
+        stop : function() {
+        }
+    },
+    events : {
+        // events support nested selectors and are context bound to the selected
+        // element
+        click : function() {
+            if (this.__timeInterval){
+                this.stop();
+            } else {
+                this.start();
+            }
+        }
+    }
+};
+    </pre>
 </div>

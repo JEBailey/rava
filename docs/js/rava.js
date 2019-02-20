@@ -32,10 +32,6 @@
             tagSet = new Set();
             tagSelectors.set(selector, tagSet);
         }
-        if (typeof config.data === "function") {
-            config.data = Object.create(config.data);
-        }
-        config.data = config.data || {};
         tagSet.add(config);
         forEach.call(document.querySelectorAll(selector), function (node) {
             wrap(node, selector, config);
@@ -120,31 +116,37 @@
                 return;
             }
         }
+        var data = config.data || {};
+
         var configSet = node["x-rava"];
         if (!configSet) {
             configSet = new Set();
             node["x-rava"] = configSet;
         }
         if (configSet.has(config)) {
-            doCallback(node, "added", config);
+            doCallback(node, "added", config, data);
             return;
         }
         configSet.add(config);
 
+        if (typeof data === "function") {
+            data = data.call(node);
+        }
+
         Object.getOwnPropertyNames(config).forEach(function (name) {
             if (name === "events") {
-                handleEvents(node, config, selector);
+                handleEvents(node, config, selector, data);
             }
             if (name === "methods") {
                 handleMethods(node, config[name]);
             }
             if (name === "callbacks") {
-                handleCallbacks(node, config, selector);
+                handleCallbacks(node, config, selector, data);
             }
         });
         if (config.callbacks) {
-            doCallback(node, "created", config);
-            doCallback(node, "added", config);
+            doCallback(node, "created", config, data);
+            doCallback(node, "added", config, data);
         }
     };
 
@@ -154,9 +156,8 @@
         }
     };
 
-    var handleEvents = function (node, config, selector) {
+    var handleEvents = function (node, config, selector, data) {
         var events = config.events;
-        var data = config.data;
         var target = config.target || node;
         for (var key in events) {
             var possibleFunc = events[key];
@@ -174,7 +175,7 @@
         }
     };
 
-    var handleCallbacks = function (node, config, selector) {
+    var handleCallbacks = function (node, config, selector, data) {
         var callbacks = config.callbacks;
         for (var key in callbacks) {
             var value = callbacks[key];
@@ -183,17 +184,17 @@
                 newConfig.scoped = key.trim().startsWith(':scope');
                 newConfig.target = config.target || node;
                 newConfig.callbacks = value;
-                newConfig.data = config.data;
+                newConfig.data = data;
                 var extendedSelector = key.replace(':scope', selector).trim();
                 rava.bind(extendedSelector, newConfig);
             }
         }
     };
 
-    var doCallback = function (element, name, config) {
+    var doCallback = function (element, name, config, data) {
         if (config.callbacks) {
             if (config.callbacks[name]) {
-                config.callbacks[name].call(config.target || element, config.data, element);
+                config.callbacks[name].call(config.target || element, data, element);
             }
         }
     }

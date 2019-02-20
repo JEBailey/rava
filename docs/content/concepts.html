@@ -15,44 +15,41 @@
     </p>
  <pre class="prettyprint lang-js">
 rava.bind('table',{
-    events : {
-        // This is an example of direct event handling where the key is the name of
-        // the event that is being listened for, in this case, it's the click
-        // event that is being listened for by the table element.
-        // This should only fire if you clicked on the table header or footer.
-        click : function() {
-            window.alert("clicked");
-        },
-        // :scope is a proper css psuedo-class which defines those elements that are a child of 
-        // the given element. Here we leverage the prefix of :scope to trigger a new scoped 
-        // binding that is looking for elements beneath the target element to be bound to.
-        ":scope tbody tr" : {
-            click : function(event){
-                // allthough we have the event listener on the 'tr' element. The callback is
-                // executed with the 'table' being the scope. To find out which 'tr' element
-                // was clicked we use the currentTarget of the event.
-                var clicked = event.currentTarget;
-                rava.findAll(this,'tr').forEach(function(row){
-                    row.classList.remove('is-selected');
-                });
-                clicked.classList.add('is-selected');
-                // we want to prevent the event bubbling here or it will be picked up by the
-                // 'click' listener on the table.
-                event.stopPropagation();
-            }
-        },
-        //another scoped hanlder to prevent the link from working in the table
-        ":scoped td a" : {
-            click: function(event){
-                event.preventDefault();
-            }
-        },
-        // This is a global intercept. Because no ':scope' is defined, we've created a binding
-        // that will occur anywhere in the document.
-        ".button .is-warning" : {
-            window.alert("oh my gosh");
-        }
-    }
+  events : {
+      // This is an example of direct event handling where the name of the property 
+      // is the event name that is being listened for, in this case, it's the click
+      // event that is being listened for by the table element
+      // This should only fire if you clicked on the table header or footer
+      click : function() {
+          window.alert("clicked");
+      },
+      // :scope is a proper css psuedo-class which defines those elements that are a child of 
+      // the given element. Here however, since support is not universal, a prefix of :scope
+      // is used to trigger a new scoped binding that is looking for elements beneath the 
+      // target element to be bound to
+      ":scope tbody tr" : {
+          click : function(event){
+              // allthough we have the event listener on the 'tr' element. The callback is
+              // executed with the 'table' being the scope. To find out which 'tr' element
+              // was clicked we use the currentTarget of the event.  
+              var clicked = event.currentTarget;
+              rava.findAll(this,'tr').forEach(function(row){
+                  row.classList.remove('is-selected');
+              });
+              clicked.classList.add('is-selected');
+              // we want to prevent the event bubbling here or it wil be picked up by the
+              // 'click' listener on the table
+              event.stopPropagation();
+          }
+      },
+      // This is a global intercept. Because no ':scope' is defined, we've created a binding
+      // that will occur anywhere in the document. 
+      ".button.is-warning" : {
+          click : function(){
+              window.alert("oh my gosh");
+          }
+      }
+  }
 });
     </pre>
     <table class="table">
