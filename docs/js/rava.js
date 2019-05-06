@@ -25,6 +25,10 @@
     var matches = Element.prototype.matches
         || Element.prototype.msMatchesSelector;
     var forEach = NodeList.prototype.forEach || Array.prototype.forEach;
+    var startsWith = String.prototype.startsWith || function(searchString, position){
+        position = position || 0;
+        return this.substr(position, searchString.length) === searchString;
+    };
 
     rava.bind = function (selector, config) {
         var tagSet = tagSelectors.get(selector);
@@ -165,7 +169,7 @@
                 node.addEventListener(key, getEventHandler(possibleFunc, target, data));
             } else {
                 var newConfig = {};
-                newConfig.scoped = key.trim().startsWith(':scope');
+                newConfig.scoped = startsWith.call(key.trim(),':scope');
                 newConfig.target = node;
                 newConfig.events = possibleFunc;
                 newConfig.data = data;
@@ -181,7 +185,7 @@
             var value = callbacks[key];
             if (typeof value === "object") {
                 var newConfig = {};
-                newConfig.scoped = key.trim().startsWith(':scope');
+                newConfig.scoped = startsWith.call(key.trim(),':scope');
                 newConfig.target = config.target || node;
                 newConfig.callbacks = value;
                 newConfig.data = data;
