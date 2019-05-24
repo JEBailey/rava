@@ -23,9 +23,9 @@
     // is either a state that is unique to the selected root element or a
     // shared state that is used for all elements that match the root selector
     data : {}, // object or function
-    // if the data is an object, that object is applied to all selected elements without
-    // any additional changes. if the data field is a function, then the function
-    // is called for each matching root element. 
+    // if the data is an object, that object is applied to all selected elements
+    // without any additional changes. if the data field is a function, then the
+    // function is called for each matching root element. 
 
     callbacks:{
         // there are three defined callbacks: added, created, and removed.
@@ -39,8 +39,21 @@
         // the signature of a callback is 
         // function(data,element)
         // 
-        created: function(){
+        created: function(data,element){
             this.start();
+        },
+        added: function(data,element){
+            this.start();
+        },
+        removed: function(data,element){
+            this.start();
+        },
+        "body > h1.foo" : {
+            added : function(data, element){
+                // element on this call is the h1.foo element that the css
+                // identified, while the data object and the 'this' is from
+                // the original configuration
+            }
         }
 
     },
@@ -55,13 +68,24 @@
     events : {
         // events support nested selectors and are context bound to the selected
         // element
-        click : function() {
-            if (this.__timeInterval){
-                this.stop();
-            } else {
-                this.start();
+        click : function(event, data) {
+            // event is the standard js event object 
+            // data is the defined data object 
+            // note: 'this' is the bound element
+        },
+        "onclick" : function (event,data) {
+            // names in quotes are the same as those without
+        }
+        ":scope a.foo" : {
+            // this is a css selector to tie other elements to the scope and binding 
+            // of the originally bound element
+            // :scope keyword at the begining will force a match on the child elements
+            // of of the original element
+            "click" : function (event, data) {
+                // 'this' is still the top level bound element
             }
         }
+
     }
 };
     </pre>
