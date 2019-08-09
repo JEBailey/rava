@@ -66,7 +66,7 @@
             traverseNodeList(mutation.addedNodes, added);
             traverseNodeList(mutation.removedNodes, removed);
         });
-    }).observe(document.body, {
+    }).observe(document, {
         attributes: false,
         childList: true,
         subtree: true,
