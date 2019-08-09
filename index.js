@@ -215,7 +215,8 @@
         module.exports = {
             rava: rava
         };
-    } else {
+    }
+    if (typeof window !== 'undefined') {
         window.rava = rava;
     }
 })();
