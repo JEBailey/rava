@@ -66,7 +66,7 @@
             traverseNodeList(mutation.addedNodes, added);
             traverseNodeList(mutation.removedNodes, removed);
         });
-    }).observe(document.body, {
+    }).observe(document, {
         attributes: false,
         childList: true,
         subtree: true,
@@ -215,7 +215,8 @@
         module.exports = {
             rava: rava
         };
-    } else {
+    }
+    if (typeof window !== 'undefined') {
         window.rava = rava;
     }
 })();
