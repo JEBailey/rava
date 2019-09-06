@@ -1,5 +1,14 @@
 <div class="content">
-    <p>RavaJS is a small library that allows you to define a component that is bound to elements using a CSS selector. This binding is dynamic so that you may define a component at any point and it will effect existing and future matching elements.</p>
+    <br>
+    <div class="level has-text-centered">
+        <i class="level-item is-size-1 fab fa-internet-explorer"></i>
+        <i class="level-item is-size-1 fab fa-edge"></i>
+        <i class="level-item is-size-1 fab fa-firefox"></i>
+        <i class="level-item is-size-1 fab fa-chrome"></i><br>
+    </div>
+    <div class="has-text-centered">IE 11 &bull; Edge &bull; FireFox &bull; Chrome</div>
+    <br>
+    <p>RavaJS is a small library ( < 3k ) that allows you to define a component that is bound to elements using a CSS selector. This binding is dynamic so that you may define a component at any point and it will effect existing and future matching elements.</p>
     <h2 class="title is-2">How to start</h2>
     <h4 class="subtitle is-4"> Setup</h4>
     <pre class="prettyprint lang-html">
@@ -9,7 +18,7 @@
     <h4 class="subtitle is-4">Usage</h4>
         <p>Now you can use css selectors to find html elements and add new functionality</p>
         <pre class="prettyprint lang-js">
-rava.bind('rava-time',{
+rava.bind('time',{
     callbacks:{
         created: function(){
             this.start();
@@ -41,10 +50,10 @@ rava.bind('rava-time',{
         Combined with some HTML
         <pre class="prettyprint lang-js">
 
-&lt;h2>"The time" she opined ,"is now &lt;rava-time>&lt;/rava-time>"&lt;/h2>
+&lt;h2>"The time" she opined ,"is now &lt;time>&lt;/rava-time>"&lt;/h2>
         </pre>
         Creates
         <blockquote>
-            <h2>"The time" she opined ,"is now <rava-time></rava-time>"</h2>
+            <h2>"The time" she opined ,"is now <time></time>"</h2>
         </blockquote>
 </div>

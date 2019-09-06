@@ -76,7 +76,7 @@ rava.bind(".remote-content", {
 });
 
 //first rava example
-rava.bind('rava-time',{
+rava.bind('time',{
     callbacks:{
         created: function(){
             this.start();
