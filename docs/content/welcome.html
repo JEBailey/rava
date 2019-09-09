@@ -1,23 +1,30 @@
 <div class="content">
     <br>
     <div class="level has-text-centered">
-        <i class="level-item is-size-1 fab fa-internet-explorer"></i>
-        <i class="level-item is-size-1 fab fa-edge"></i>
-        <i class="level-item is-size-1 fab fa-firefox"></i>
-        <i class="level-item is-size-1 fab fa-chrome"></i><br>
+        <i class="level-item is-size-1 fab fa-internet-explorer"></i> <i
+            class="level-item is-size-1 fab fa-edge"></i> <i
+            class="level-item is-size-1 fab fa-firefox"></i> <i
+            class="level-item is-size-1 fab fa-chrome"></i><br>
     </div>
-    <div class="has-text-centered">IE 11 &bull; Edge &bull; FireFox &bull; Chrome</div>
+    <div class="has-text-centered">IE 11 &bull; Edge &bull;
+        FireFox &bull; Chrome</div>
     <br>
-    <p>RavaJS is a small library ( < 3k ) that allows you to define a component that is bound to elements using a CSS selector. This binding is dynamic so that you may define a component at any point and it will effect existing and future matching elements.</p>
+    <p>RavaJS is a small library, less than 3k in size, that allows
+        you to define methods, events handlers, and lifecycles that are
+        dynamically mapped to an element with a CSS selector. This
+        dynamic mapping allows you to define once and then have this
+        configuration happen regardless of when the matching element is
+        added to the page.</p>
     <h2 class="title is-2">How to start</h2>
-    <h4 class="subtitle is-4"> Setup</h4>
+    <h4 class="subtitle is-4">Setup</h4>
     <pre class="prettyprint lang-html">
 
 &lt;script src="https://cdn.jsdelivr.net/npm/rava@2.2.0/dist/rava.min.js"&gt;&lt;/script&gt;
             </pre>
     <h4 class="subtitle is-4">Usage</h4>
-        <p>Now you can use css selectors to find html elements and add new functionality</p>
-        <pre class="prettyprint lang-js">
+    <p>Now you can use css selectors to find html elements and add
+        new functionality</p>
+    <pre class="prettyprint lang-js">
 rava.bind('time',{
     callbacks:{
         created: function(){
@@ -47,13 +54,17 @@ rava.bind('time',{
     }
 });
         </pre>
-        Combined with some HTML
-        <pre class="prettyprint lang-js">
+    Combined with some HTML
+    <pre class="prettyprint lang-js">
 
 &lt;h2>"The time" she opined ,"is now &lt;time>&lt;/time>"&lt;/h2>
         </pre>
-        Creates
-        <blockquote>
-            <h2>"The time" she opined ,"is now <time></time>"</h2>
-        </blockquote>
+    Creates
+    <blockquote>
+        <h2>
+            "The time" she opined ,"is now
+            <time></time>
+            "
+        </h2>
+    </blockquote>
 </div>
