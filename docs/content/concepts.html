@@ -1,174 +1,300 @@
 <div class="content">
     <h3 class="title is-3">Binding</h3>
-    <p> <em>Rava.bind(selector,config)</em> the selector and the associated configuration is stored within Rava. During the method call all existing matching elements are configured.</p>
-    <p> Additionally the addition of new elements to the dom is monitored and any new elements that match the selector will be updated as well.</p>
-    <p> Multiple selector/configurations that match a specific element can be bound.</p>
+    <p>
+        <em>Rava.bind(selector,config)</em> the selector and the
+        associated configuration is stored within Rava. During the
+        method call all existing matching elements are configured.
+    </p>
+    <p>Additionally the addition of new elements to the dom is
+        monitored and any new elements that match the selector will be
+        updated as well.</p>
+    <p>Multiple selector/configurations that match a specific
+        element can be bound.</p>
     <h3 class="title is-3">Scope</h3>
-    <p> All methods that are defined in the configuration object are bound to the element. Meaning that any calls done to these methods uses the element as its scope.</p>
-    <p> This is done to make it easier to write callbacks to these methods from each other and the event handlers, which are similarly bound.
-    </p>
+    <p>All methods that are defined in the configuration object are
+        bound to the element. Meaning that any calls done to these
+        methods uses the element as its scope.</p>
+    <p>This is done to make it easier to write callbacks to these
+        methods from each other and the event handlers, which are
+        similarly bound.</p>
     <h3 class="title is-3">Event Handling</h3>
-    <p> Events have three forms of declaration; direct, and scoped and global. A direct binding is in the form of <em>event-name</em>:<em>function-declaration</em> which registers itself to the currently targeted element.
-        If an object is used instead of a function then the declaration is assumed to be <em>selector</em>:<em>event-config</em>. Either declaration takes a css definition. The difference is that a scoped
-        declaration has the word ':scoped' at the beginning of the css. This causes the event handler to only listen to matching events that
-        ocur beneath the current element. A css declaration that does not begin with scope is matched against the whole document.
+    <p>
+        Events have three forms of declaration; direct, and scoped and
+        global. A direct binding is in the form of <em>event-name</em>:<em>function-declaration</em>
+        which registers itself to the currently targeted element. If an
+        object is used instead of a function then the declaration is
+        assumed to be <em>selector</em>:<em>event-config</em>. Either
+        declaration takes a css definition. The difference is that a
+        scoped declaration has the word ':scoped' at the beginning of
+        the css. This causes the event handler to only listen to
+        matching events that ocur beneath the current element. A css
+        declaration that does not begin with scope is matched against
+        the whole document.
     </p>
- <pre class="prettyprint lang-js">
+    <pre class="prettyprint lang-js">
 rava.bind('table',{
-  events : {
-      // This is an example of direct event handling where the name of the property 
-      // is the event name that is being listened for, in this case, it's the click
-      // event that is being listened for by the table element
-      // This should only fire if you clicked on the table header or footer
-      click : function() {
-          window.alert("clicked");
-      },
-      // :scope is a proper css psuedo-class which defines those elements that are a child of 
-      // the given element. Here however, since support is not universal, a prefix of :scope
-      // is used to trigger a new scoped binding that is looking for elements beneath the 
-      // target element to be bound to
-      ":scope tbody tr" : {
-          click : function(event){
-              // allthough we have the event listener on the 'tr' element. The callback is
-              // executed with the 'table' being the scope. To find out which 'tr' element
-              // was clicked we use the currentTarget of the event.  
-              var clicked = event.currentTarget;
-              rava.findAll(this,'tr').forEach(function(row){
-                  row.classList.remove('is-selected');
-              });
-              clicked.classList.add('is-selected');
-              // we want to prevent the event bubbling here or it wil be picked up by the
-              // 'click' listener on the table
-              event.stopPropagation();
-          }
-      },
-      // This is a global intercept. Because no ':scope' is defined, we've created a binding
-      // that will occur anywhere in the document. 
-      ".button.is-warning" : {
-          click : function(){
-              window.alert("oh my gosh");
-          }
-      }
-  }
+    events : {
+        // This is an example of direct event handling where the name of the property 
+        // is the event name that is being listened for, in this case, it's the click
+        // event that is being listened for by the table element
+        // This should only fire if you clicked on the table header or footer
+        click : function() {
+            window.alert("clicked");
+        },
+        // :scope is a proper css psuedo-class which defines those elements that are a child of 
+        // the given element. Here however, since support is not universal, a prefix of :scope
+        // is used to trigger a new scoped binding that is looking for elements beneath the 
+        // target element to be bound to
+        ":scope tbody tr" : {
+            click : function(event){
+                // allthough we have the event listener on the 'tr' element. The callback is
+                // executed with the 'table' being the scope. To find out which 'tr' element
+                // was clicked we use the currentTarget of the event.  
+                var clicked = event.currentTarget;
+                rava.findAll(this,'tr').forEach(function(row){
+                    row.classList.remove('is-selected');
+                });
+                clicked.classList.add('is-selected');
+                // we want to prevent the event bubbling here or it wil be picked up by the
+                // 'click' listener on the table
+                event.stopPropagation();
+            }
+        },
+        // This is a global intercept. Because no ':scope' is defined, we've created a binding
+        // that will occur anywhere in the document. 
+        ".button.is-warning" : {
+            click : function(){
+                window.alert("oh my gosh");
+            }
+        }
+    }
 });
     </pre>
     <table class="table">
         <thead>
-          <tr>
-            <th><abbr title="Position">Pos</abbr></th>
-            <th>Team</th>
-            <th><abbr title="Played">Pld</abbr></th>
-            <th><abbr title="Won">W</abbr></th>
-            <th><abbr title="Drawn">D</abbr></th>
-            <th><abbr title="Lost">L</abbr></th>
-            <th><abbr title="Goals for">GF</abbr></th>
-            <th><abbr title="Goals against">GA</abbr></th>
-            <th><abbr title="Goal difference">GD</abbr></th>
-            <th><abbr title="Points">Pts</abbr></th>
-          </tr>
+            <tr>
+                <th><abbr title="Position">Pos</abbr></th>
+                <th>Team</th>
+                <th><abbr title="Played">Pld</abbr></th>
+                <th><abbr title="Won">W</abbr></th>
+                <th><abbr title="Drawn">D</abbr></th>
+                <th><abbr title="Lost">L</abbr></th>
+                <th><abbr title="Goals for">GF</abbr></th>
+                <th><abbr title="Goals against">GA</abbr></th>
+                <th><abbr title="Goal difference">GD</abbr></th>
+                <th><abbr title="Points">Pts</abbr></th>
+            </tr>
         </thead>
         <tfoot>
-          <tr>
-            <th><abbr title="Position">Pos</abbr></th>
-            <th>Team</th>
-            <th><abbr title="Played">Pld</abbr></th>
-            <th><abbr title="Won">W</abbr></th>
-            <th><abbr title="Drawn">D</abbr></th>
-            <th><abbr title="Lost">L</abbr></th>
-            <th><abbr title="Goals for">GF</abbr></th>
-            <th><abbr title="Goals against">GA</abbr></th>
-            <th><abbr title="Goal difference">GD</abbr></th>
-            <th><abbr title="Points">Pts</abbr></th>
-          </tr>
+            <tr>
+                <th><abbr title="Position">Pos</abbr></th>
+                <th>Team</th>
+                <th><abbr title="Played">Pld</abbr></th>
+                <th><abbr title="Won">W</abbr></th>
+                <th><abbr title="Drawn">D</abbr></th>
+                <th><abbr title="Lost">L</abbr></th>
+                <th><abbr title="Goals for">GF</abbr></th>
+                <th><abbr title="Goals against">GA</abbr></th>
+                <th><abbr title="Goal difference">GD</abbr></th>
+                <th><abbr title="Points">Pts</abbr></th>
+            </tr>
         </tfoot>
         <tbody>
-          <tr>
-            <th>1</th>
-            <td><a href="https://en.wikipedia.org/wiki/Leicester_City_F.C." title="Leicester City F.C.">Leicester City</a> <strong>(C)</strong>
-            </td>
-            <td>38</td>
-            <td>23</td>
-            <td>12</td>
-            <td>3</td>
-            <td>68</td>
-            <td>36</td>
-            <td>+32</td>
-            <td>81</td>
-          </tr>
-          <tr>
-            <th>2</th>
-            <td><a href="https://en.wikipedia.org/wiki/Arsenal_F.C." title="Arsenal F.C.">Arsenal</a></td>
-            <td>38</td>
-            <td>20</td>
-            <td>11</td>
-            <td>7</td>
-            <td>65</td>
-            <td>36</td>
-            <td>+29</td>
-            <td>71</td>
-          </tr>
-          <tr>
-            <th>3</th>
-            <td><a href="https://en.wikipedia.org/wiki/Tottenham_Hotspur_F.C." title="Tottenham Hotspur F.C.">Tottenham Hotspur</a></td>
-            <td>38</td>
-            <td>19</td>
-            <td>13</td>
-            <td>6</td>
-            <td>69</td>
-            <td>35</td>
-            <td>+34</td>
-            <td>70</td>
-          </tr>
-          <tr class="is-selected">
-            <th>4</th>
-            <td><a href="https://en.wikipedia.org/wiki/Manchester_City_F.C." title="Manchester City F.C.">Manchester City</a></td>
-            <td>38</td>
-            <td>19</td>
-            <td>9</td>
-            <td>10</td>
-            <td>71</td>
-            <td>41</td>
-            <td>+30</td>
-            <td>66</td>
-          </tr>
-          <tr>
-            <th>5</th>
-            <td><a href="https://en.wikipedia.org/wiki/Manchester_United_F.C." title="Manchester United F.C.">Manchester United</a></td>
-            <td>38</td>
-            <td>19</td>
-            <td>9</td>
-            <td>10</td>
-            <td>49</td>
-            <td>35</td>
-            <td>+14</td>
-            <td>66</td>
-          </tr>
-          <tr>
-            <th>6</th>
-            <td><a href="https://en.wikipedia.org/wiki/Southampton_F.C." title="Southampton F.C.">Southampton</a></td>
-            <td>38</td>
-            <td>18</td>
-            <td>9</td>
-            <td>11</td>
-            <td>59</td>
-            <td>41</td>
-            <td>+18</td>
-            <td>63</td>
-          </tr>
-          <tr>
-            <th>7</th>
-            <td><a href="https://en.wikipedia.org/wiki/West_Ham_United_F.C." title="West Ham United F.C.">West Ham United</a></td>
-            <td>38</td>
-            <td>16</td>
-            <td>14</td>
-            <td>8</td>
-            <td>65</td>
-            <td>51</td>
-            <td>+14</td>
-            <td>62</td>
-          </tr>
+            <tr>
+                <th>1</th>
+                <td><a
+                    href="https://en.wikipedia.org/wiki/Leicester_City_F.C."
+                    title="Leicester City F.C.">Leicester City</a> <strong>(C)</strong>
+                </td>
+                <td>38</td>
+                <td>23</td>
+                <td>12</td>
+                <td>3</td>
+                <td>68</td>
+                <td>36</td>
+                <td>+32</td>
+                <td>81</td>
+            </tr>
+            <tr>
+                <th>2</th>
+                <td><a
+                    href="https://en.wikipedia.org/wiki/Arsenal_F.C."
+                    title="Arsenal F.C.">Arsenal</a></td>
+                <td>38</td>
+                <td>20</td>
+                <td>11</td>
+                <td>7</td>
+                <td>65</td>
+                <td>36</td>
+                <td>+29</td>
+                <td>71</td>
+            </tr>
+            <tr>
+                <th>3</th>
+                <td><a
+                    href="https://en.wikipedia.org/wiki/Tottenham_Hotspur_F.C."
+                    title="Tottenham Hotspur F.C.">Tottenham Hotspur</a></td>
+                <td>38</td>
+                <td>19</td>
+                <td>13</td>
+                <td>6</td>
+                <td>69</td>
+                <td>35</td>
+                <td>+34</td>
+                <td>70</td>
+            </tr>
+            <tr class="is-selected">
+                <th>4</th>
+                <td><a
+                    href="https://en.wikipedia.org/wiki/Manchester_City_F.C."
+                    title="Manchester City F.C.">Manchester City</a></td>
+                <td>38</td>
+                <td>19</td>
+                <td>9</td>
+                <td>10</td>
+                <td>71</td>
+                <td>41</td>
+                <td>+30</td>
+                <td>66</td>
+            </tr>
+            <tr>
+                <th>5</th>
+                <td><a
+                    href="https://en.wikipedia.org/wiki/Manchester_United_F.C."
+                    title="Manchester United F.C.">Manchester United</a></td>
+                <td>38</td>
+                <td>19</td>
+                <td>9</td>
+                <td>10</td>
+                <td>49</td>
+                <td>35</td>
+                <td>+14</td>
+                <td>66</td>
+            </tr>
+            <tr>
+                <th>6</th>
+                <td><a
+                    href="https://en.wikipedia.org/wiki/Southampton_F.C."
+                    title="Southampton F.C.">Southampton</a></td>
+                <td>38</td>
+                <td>18</td>
+                <td>9</td>
+                <td>11</td>
+                <td>59</td>
+                <td>41</td>
+                <td>+18</td>
+                <td>63</td>
+            </tr>
+            <tr>
+                <th>7</th>
+                <td><a
+                    href="https://en.wikipedia.org/wiki/West_Ham_United_F.C."
+                    title="West Ham United F.C.">West Ham United</a></td>
+                <td>38</td>
+                <td>16</td>
+                <td>14</td>
+                <td>8</td>
+                <td>65</td>
+                <td>51</td>
+                <td>+14</td>
+                <td>62</td>
+            </tr>
         </tbody>
-      </table>
-      <button class="button is-warning">warning</button>
-
+    </table>
+    <button class="button is-warning">warning</button>
+    <h3 class="title is-3">String Substitution</h3>
+    <p>A common use case that was discovered is that the selected
+        element would have a data attribute that would define a target
+        that would be used for an additional rava binding. There were a
+        number of ways to handle this but to streamline the use case we
+        added String substitution for the inner selectors</p>
+    <pre class="prettyprint lang-js">
+rava.bind('.switchable',{
+    events : {
+        "#{target}" : {
+            change : function(event){
+                var target = event.target;
+                if (target.value === this.dataset.value){
+                    this.classList.add("is-hidden");
+                } else {
+                    this.classList.remove("is-hidden");
+                }
+            }
+        }
+    }
+});
+    </pre>
+    <div class="select">
+    <select id="example">
+        <option value="volvo">Volvo</option>
+        <option value="saab">Saab</option>
+        <option value="mercedes">Mercedes</option>
+        <option value="tesla">Tesla</option>
+    </select>
+    </div>
+    <br><br>
+    <div class="box switchable is-hidden" data-target="example" data-value="volvo">
+        <article class="media">
+            <div class="media-left"></div>
+            <div class="media-content">
+                <div class="content">
+                    <p>
+                        <strong>Volvo</strong> <small>it's a boxy car</small>
+                        <br> Lorem ipsum dolor sit amet,
+                        consectetur adipiscing elit. Aenean efficitur
+                        sit amet massa fringilla egestas. Nullam
+                        condimentum luctus turpis.
+                    </p>
+                </div>
+            </div>
+        </article>
+    </div>
+    <div class="box switchable is-hidden" data-target="example" data-value="saab" >
+        <article class="media">
+            <div class="media-left"></div>
+            <div class="media-content">
+                <div class="content">
+                    <p>
+                        <strong>Saab</strong> <small>it's a car</small>
+                        <br> Lorem ipsum dolor sit amet,
+                        consectetur adipiscing elit. Aenean efficitur
+                        sit amet massa fringilla egestas. Nullam
+                        condimentum luctus turpis.
+                    </p>
+                </div>
+            </div>
+        </article>
+    </div>
+    <div class="box switchable is-hidden" data-target="example" data-value="mercedes">
+        <article class="media">
+            <div class="media-left"></div>
+            <div class="media-content">
+                <div class="content">
+                    <p>
+                        <strong>Mercedes</strong> <small>it's a
+                            car</small> <br> Lorem ipsum dolor sit amet,
+                        consectetur adipiscing elit. Aenean efficitur
+                        sit amet massa fringilla egestas. Nullam
+                        condimentum luctus turpis.
+                    </p>
+                </div>
+            </div>
+        </article>
+    </div>
+    <div class="box switchable is-hidden" data-target="example" data-value="tesla">
+        <article class="media">
+            <div class="media-left"></div>
+            <div class="media-content">
+                <div class="content">
+                    <p>
+                        <strong>Tesla</strong> <small>it's a
+                            car</small> <br> Lorem ipsum dolor sit amet,
+                        consectetur adipiscing elit. Aenean efficitur
+                        sit amet massa fringilla egestas. Nullam
+                        condimentum luctus turpis.
+                    </p>
+                </div>
+            </div>
+        </article>
+    </div>
 </div>

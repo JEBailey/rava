@@ -177,6 +177,24 @@ rava.bind('modal',{
     }
 });
 
+//find the switchable element
+rava.bind('.switchable',{
+    events : {
+        // the switchable element has a data-target attribute, let's get the value of that
+        // attribute and create a binding with it
+        "#{target}" : {
+            change : function(event){
+                var target = event.target;
+                if (target.value === this.dataset.value){
+                    this.classList.remove("is-hidden");
+                } else {
+                    this.classList.add("is-hidden");
+                }
+            }
+        }
+    }
+});
+
 rava.bind(".notification",{
     events:{
         ".delete" :{
