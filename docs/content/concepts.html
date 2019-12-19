@@ -224,24 +224,42 @@ rava.bind('.switchable',{
     }
 });
     </pre>
-        <br><br>
-    <div class="box switchable is-hidden" data-target="example" data-value="volvo">
+    <br>
+    <div class="box switchable" data-target="example"
+        data-value="">
         <article class="media">
             <div class="media-left"></div>
             <div class="media-content">
                 <div class="content">
                     <p>
-                        <strong>Volvo</strong> <small>it's a boxy car</small>
-                        <br> Lorem ipsum dolor sit amet,
-                        consectetur adipiscing elit. Aenean efficitur
-                        sit amet massa fringilla egestas. Nullam
-                        condimentum luctus turpis.
+                        <strong>No Car</strong> <small>not a car</small> <br> Lorem ipsum dolor sit
+                        amet, consectetur adipiscing elit. Aenean
+                        efficitur sit amet massa fringilla egestas.
+                        Nullam condimentum luctus turpis.
                     </p>
                 </div>
             </div>
         </article>
     </div>
-    <div class="box switchable is-hidden" data-target="example" data-value="saab" >
+    <div class="box switchable is-hidden" data-target="example"
+        data-value="volvo">
+        <article class="media">
+            <div class="media-left"></div>
+            <div class="media-content">
+                <div class="content">
+                    <p>
+                        <strong>Volvo</strong> <small>it's a
+                            boxy car</small> <br> Goes vroom Lorem ipsum dolor sit
+                        amet, consectetur adipiscing elit. Aenean
+                        efficitur sit amet massa fringilla egestas.
+                        Nullam condimentum luctus turpis.
+                    </p>
+                </div>
+            </div>
+        </article>
+    </div>
+    <div class="box switchable is-hidden" data-target="example"
+        data-value="saab">
         <article class="media">
             <div class="media-left"></div>
             <div class="media-content">
@@ -257,7 +275,8 @@ rava.bind('.switchable',{
             </div>
         </article>
     </div>
-    <div class="box switchable is-hidden" data-target="example" data-value="mercedes">
+    <div class="box switchable is-hidden" data-target="example"
+        data-value="mercedes">
         <article class="media">
             <div class="media-left"></div>
             <div class="media-content">
@@ -273,14 +292,15 @@ rava.bind('.switchable',{
             </div>
         </article>
     </div>
-    <div class="box switchable is-hidden" data-target="example" data-value="tesla">
+    <div class="box switchable is-hidden" data-target="example"
+        data-value="tesla">
         <article class="media">
             <div class="media-left"></div>
             <div class="media-content">
                 <div class="content">
                     <p>
-                        <strong>Tesla</strong> <small>it's a
-                            car</small> <br> Lorem ipsum dolor sit amet,
+                        <strong>Tesla</strong> <small>it's an electric car</small>
+                        <br> Lorem ipsum dolor sit amet,
                         consectetur adipiscing elit. Aenean efficitur
                         sit amet massa fringilla egestas. Nullam
                         condimentum luctus turpis.
@@ -289,14 +309,18 @@ rava.bind('.switchable',{
             </div>
         </article>
     </div>
-    <br><br>
+    <br>
     <div class="select">
-    <select id="example">
-        <option value="volvo">Volvo</option>
-        <option value="saab">Saab</option>
-        <option value="mercedes">Mercedes</option>
-        <option value="tesla">Tesla</option>
-    </select>
+        <select id="example">
+            <option selected disabled>Pick a car</option>
+            <option value="volvo">Volvo</option>
+            <option value="saab">Saab</option>
+            <option value="mercedes">Mercedes</option>
+            <option value="tesla">Tesla</option>
+        </select>
     </div>
-
+    <br>
+    <p>Selecting a new choice in the above select box will trigger a
+        different type of car to be displayed</p>
+    <br> <br> <br> <br>
 </div>
