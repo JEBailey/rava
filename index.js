@@ -20,16 +20,50 @@
 (function () {
     "use strict";
     var rava = {};
+    
+    /**
+     * stores a given selector with a list of configurations that applies to it
+     */
     var tagSelectors = new Map();
 
+    // polyfill to support IE 11
     var matches = Element.prototype.matches
         || Element.prototype.msMatchesSelector;
+    // polyfill to support IE 11
     var forEach = NodeList.prototype.forEach || Array.prototype.forEach;
+    // polyfill to support IE 11
     var startsWith = String.prototype.startsWith || function(searchString, position){
         position = position || 0;
         return this.substr(position, searchString.length) === searchString;
     };
-
+    //polyfilling for template literals
+    var format = function( node, string){
+        var regex = /{(\w+)}/g;
+        var found = string.match(regex);
+        if (found){
+            found.forEach(
+                function(found){
+                    var oldValue = found.slice(1,found.length-1);
+                    if(oldValue in node.dataset){
+                        string = string.replace(found, node.dataset[oldValue]);
+                    } else {
+                        console.log("unable to find data-" + oldValue + "in element " + node);
+                    }
+                }
+            )
+        }
+        return string;
+    }
+    
+    /**
+     * binds the elements that match the provided css selector with a specific configuration
+     * then uses the css selector to find all the matching elements to configure.
+     * After the initial configuration, rava then establishes a listener for any additional
+     *  matching elements
+     * 
+     * @param {string | selector} selector - CSS styled selector for an object
+     * @param {object} config - Configuration Object
+     */
     rava.bind = function (selector, config) {
         var tagSet = tagSelectors.get(selector);
         if (!tagSet) {
@@ -42,6 +76,11 @@
         });
     };
 
+    /**
+     * locates the first element below the given element that matches the selector
+     * @param {HTMLElement} element - top level element that you are searching below
+     * @param {string} selector - CSS styled selector for an object
+     */
     rava.find = function (element, selector) {
         traverse(element, function (el) {
             if (matches.call(el, selector)) {
@@ -51,6 +90,11 @@
         return null;
     }
 
+    /** 
+     * locates all of elements below the given element that matches the selector
+     * @param {HTMLElement} element - top level element that you are searching below
+     * @param {string} selector - CSS styled selector for an object
+     */
     rava.findAll = function (element, selector) {
         var response = [];
         traverse(element, function (el) {
@@ -61,6 +105,7 @@
         return response;
     }
 
+    // mutation observer to monitor the whole document
     new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
             traverseNodeList(mutation.addedNodes, added);
@@ -72,7 +117,9 @@
         subtree: true,
         characterData: false
     });
-
+    
+    // internal function that traversals a node list and
+    // performs a callback for each ELEMENT_NODE that's found
     var traverseNodeList = function (nodeList, callback) {
         forEach.call(nodeList, function (node) {
             if (node.nodeType == Node.ELEMENT_NODE) {
@@ -81,6 +128,8 @@
         });
     };
 
+    // internal function that traversals a node list and
+    // performs a callback for each ELEMENT_NODE that's found
     var traverse = function (element, callback) {
         var checkSet = new Set();
         checkSet.add(element);
@@ -115,8 +164,11 @@
     };
 
     var wrap = function (node, selector, config) {
+        // in the case that this is a scoped configuration
+        // we only match on child elements of the specific 
+        // parent element
         if (config.scoped) {
-            if (!config.target.contains(node)) {
+            if (!config.scoped.contains(node)) {
                 return;
             }
         }
@@ -169,11 +221,13 @@
                 node.addEventListener(key, getEventHandler(possibleFunc, target, data));
             } else {
                 var newConfig = {};
-                newConfig.scoped = startsWith.call(key.trim(),':scope');
+                if (startsWith.call(key.trim(),':scope')){
+                    newConfig.scoped = node;
+                }
                 newConfig.target = node;
                 newConfig.events = possibleFunc;
                 newConfig.data = data;
-                var extendedSelector = key.replace(':scope', selector).trim();
+                var extendedSelector = format(node,key.replace(':scope', selector)).trim();
                 rava.bind(extendedSelector, newConfig);
             }
         }
@@ -185,11 +239,13 @@
             var value = callbacks[key];
             if (typeof value === "object") {
                 var newConfig = {};
-                newConfig.scoped = startsWith.call(key.trim(),':scope');
+                if (startsWith.call(key.trim(),':scope')){
+                    newConfig.scoped = node;
+                }
                 newConfig.target = config.target || node;
                 newConfig.callbacks = value;
                 newConfig.data = data;
-                var extendedSelector = key.replace(':scope', selector).trim();
+                var extendedSelector = format(node,key.replace(':scope', selector)).trim();
                 rava.bind(extendedSelector, newConfig);
             }
         }
