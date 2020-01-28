@@ -22,23 +22,35 @@
     // and event handler that is defined in the configuration. The data object
     // is either a state that is unique to the selected root element or a
     // shared state that is used for all elements that match the root selector
-    data : {}, // object or function
     // if the data is an object, that object is applied to all selected elements
     // without any additional changes. if the data field is a function, then the
     // function is called for each matching root element. 
+    data : {}, // object or function
+    
+    // scoped is used internally to identify the root element that the scoped CSS 
+    // is a child of. This can also be used when creating the configuration to 
+    // manually identify the root parent.
+    scoped : HtmlElement,
+    
+    // used internally to identify which object will be 'this' when an event or 
+    // or function is called. This can be manually configured to allow a
+    // configuration to purposefully use a specific 'this' for context
+    target : HtmlElement,
+    
 
+    // there are three defined callbacks: added, created, and removed.
+    // callbacks are triggered by rava itself as the element is initially
+    // created, added to the dom, and removed from the dom.
+    // 
+    // callbacks support nested selectors, if an object is defined rather
+    // than the three callbacks, the key is then assumed to be a selector
+    // for other elements
+    //  
+    // the signature of a callback is 
+    // function(data,element)
+    // 
     callbacks:{
-        // there are three defined callbacks: added, created, and removed.
-        // callbacks are triggered by rava itself as the element is initially
-        // created, added to the dom, and removed from the dom.
-        // 
-        // callbacks support nested selectors, if an object is defined rather
-        // than the three callbacks, the key is then assumed to be a selector
-        // for other elements
-        //  
-        // the signature of a callback is 
-        // function(data,element)
-        // 
+
         created: function(data,element){
             this.start();
         },

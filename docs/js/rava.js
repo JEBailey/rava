@@ -37,17 +37,16 @@
         return this.substr(position, searchString.length) === searchString;
     };
     //polyfilling for template literals
-    var format = function( node, string){
+    var format = function( el, string){
         var regex = /{(\w+)}/g;
         var found = string.match(regex);
         if (found){
             found.forEach(
                 function(found){
                     var oldValue = found.slice(1,found.length-1);
-                    if(oldValue in node.dataset){
-                        string = string.replace(found, node.dataset[oldValue]);
-                    } else {
-                        console.log("unable to find data-" + oldValue + "in element " + node);
+                    var newValue = el.dataset[oldValue];
+                    if(newValue){
+                        string = string.replace(found,newValue);
                     }
                 }
             )
