@@ -36,7 +36,16 @@
         position = position || 0;
         return this.substr(position, searchString.length) === searchString;
     };
-    //polyfilling for template literals
+    // polyfill to support IE
+    var customEvent =  (typeof window.CustomEvent === "function") ? window.CustomEvent : 
+    	function (event, params) {
+	        params = params || { bubbles: false, cancelable: false, detail: null };
+	        var evt = document.createEvent( 'CustomEvent' );
+	        evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+	        return evt;
+    	}
+    
+    //polyfill for template literals
     var format = function( el, string){
         var regex = /{(\w+)}/g;
         var found = string.match(regex);
@@ -111,11 +120,28 @@
             traverseNodeList(mutation.removedNodes, removed);
         });
     }).observe(document, {
-        attributes: false,
         childList: true,
-        subtree: true,
-        characterData: false
+        subtree: true
     });
+    
+    var attributeObserver = function (element, attrList) {
+	    var response = new MutationObserver(function (mutations) {
+	        mutations.forEach(function (mutation) {
+	        	element.dispatchEvent(new customeEvent(mutation.attributeName,{
+	        		detail : {
+	        			oldValue : mutation.oldValue,
+	        			newValue : element[mutation.attributeName]
+	        		}
+	        	}));
+	        });
+	    });
+	    response.observe(element,{
+	        attributes: true,
+	        attributeFilter: attrList,
+	        attributeOldValue: true
+	    });
+	    return response;
+    }
     
     // internal function that traversals a node list and
     // performs a callback for each ELEMENT_NODE that's found
@@ -189,15 +215,21 @@
         }
 
         Object.getOwnPropertyNames(config).forEach(function (name) {
-            if (name === "events") {
-                handleEvents(node, config, selector, data);
-            }
-            if (name === "methods") {
-                handleMethods(node, config[name]);
-            }
-            if (name === "callbacks") {
-                handleCallbacks(node, config, selector, data);
-            }
+        	switch (name) {
+        	case "events":
+        		handleEvents(node, config, selector, data);
+        		break;
+        	case "methods":
+        		handleMethods(node, config[name]);
+        		break;
+        	case "callbacks":
+        		handleCallbacks(node, config, selector, data);
+        		break;
+        	case "attrs":
+        		var items = handleAttributes(node, config, selector, data);
+        		attributeObserver(node, items);
+        		break;
+        	}
         });
         if (config.callbacks) {
             doCallback(node, "created", config, data);
@@ -230,6 +262,30 @@
                 rava.bind(extendedSelector, newConfig);
             }
         }
+    };
+
+    var handleAttributes = function (node, config, selector, data) {
+        var attrs = config.attrs;
+        var target = config.target || node;
+        var items = [];
+        for (var key in attrs) {
+            var possibleFunc = attrs[key];
+            if (typeof possibleFunc === "function") {
+                node.addEventListener(key, getEventHandler(possibleFunc, target, data));
+                items.push(key);
+            } else {
+                var newConfig = {};
+                if (startsWith.call(key.trim(),':scope')){
+                    newConfig.scoped = node;
+                }
+                newConfig.target = node;
+                newConfig.attrs = possibleFunc;
+                newConfig.data = data;
+                var extendedSelector = format(node,key.replace(':scope', selector)).trim();
+                rava.bind(extendedSelector, newConfig);
+            }
+        }
+        return items;
     };
 
     var handleCallbacks = function (node, config, selector, data) {
