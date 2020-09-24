@@ -122,7 +122,8 @@
     }
 
     /**
-     * Generates a Function from the string/
+     * Generates a Function from the string that accepts
+     * 
      * 
      * @param {string} string 
      */
@@ -242,15 +243,11 @@
                 handleCallbacks(node, config, selector, data);
                 return;
             }
-            if (name === "ref") {
-                handleReference(node, config, data);
-                return;
-            }
             if (name === "refs") {
                 handleReferences(node, config, selector, data);
                 return;
             }
-            if (startsWith.call(name, "$")) {
+            if (startsWith.call(name, "on_")) {
                 handleInlineEvents(node, config, selector, data, name);
                 return;
             }
@@ -268,15 +265,6 @@
                 console.log("unknown configuration of " + name);
             }
         });
-
-        if (node.hasAttributes()) {
-            var attrs = node.attributes;
-            for (var i = attrs.length - 1; i >= 0; i--) {
-                if (startsWith.call(attrs[i].name, "rava-on:")) {
-                    handleAttrBinding(node, config, selector, attrs[i].name, data);
-                }
-            }
-        }
 
         doCallback(node, "created", config, data);
         doCallback(node, "added", config, data);
@@ -316,9 +304,10 @@
     };
 
     var handleInlineEvents = function (node, config, selector, data, name) {
-        var key_name = name.substring(1);
+        var key_name = name.substring(3);
+        var target = config.target || node;
         var events = config[name];
-        if (typeof events === "object") {
+        if (typeof events === "object" ) {
             for (var ref_selector in events) {
                 var value = events[ref_selector];
                 var newConfig = {};
@@ -332,54 +321,52 @@
                 newConfig.data = data;
                 rava.bind(ref_selector, newConfig);
             }
+        } else if (typeof events === "string") {
+            node.addEventListener(key_name, getEventHandler(events, target, data));
         } else {
             if (rava.debug) {
-                console.log("unknown type " + (typeof events) + " for event collector");
+                console.log("unknown type " + (typeof events) + " for value of " + name + "in config");
             }
         }
     };
 
     var handleCallbacks = function (node, config, selector, data) {
         var callbacks = config.callbacks;
-        for (var key in callbacks) {
-            var value = callbacks[key];
-            if (typeof value === "object") {
-                var newConfig = {};
-                if (startsWith.call(key.trim(), ':scope')) {
-                    newConfig.scoped = node;
+        if (typeof callbacks === "object") {
+            for (var key in callbacks) {
+                var value = callbacks[key];
+                if (typeof value === "object") {
+                    var newConfig = {};
+                    if (startsWith.call(key.trim(), ':scope')) {
+                        newConfig.scoped = node;
+                    }
+                    newConfig.target = config.target || node;
+                    newConfig.callbacks = value;
+                    newConfig.data = data;
+                    var extendedSelector = format(node, key.replace(':scope', selector)).trim();
+                    rava.bind(extendedSelector, newConfig);
                 }
-                newConfig.target = config.target || node;
-                newConfig.callbacks = value;
-                newConfig.data = data;
-                var extendedSelector = format(node, key.replace(':scope', selector)).trim();
-                rava.bind(extendedSelector, newConfig);
             }
-        }
-    };
-
-    var handleReference = function (node, config, data) {
-        var reference = config.ref;
-        if (typeof reference === "string") {
-            if (data[reference]) {
-                if (!Array.isArray(data[reference])) {
-                    temp = data[reference];
-                    data[reference] = [temp];
-                }
-                data[reference].push(node);
-            } else {
-                data[reference] = node;
-            }
-            return;
         } else {
             if (rava.debug) {
-                console.log("unknown type " + (typeof reference) + " for reference");
+                console.log("unknown type " + (typeof events) + " as value for callbacks: in config");
             }
         }
     };
 
     var handleReferences = function (node, config, selector, data) {
         var references = config.refs;
-        if (typeof references === "object") {
+        if (typeof references === "string") {
+            if (data[references]) {
+                if (!Array.isArray(data[references])) {
+                    temp = data[references];
+                    data[references] = [temp];
+                }
+                data[references].push(node);
+            } else {
+                data[references] = node;
+            }
+        } else if (typeof references === "object") {
             for (var ref_selector in references) {
                 var value = references[ref_selector];
                 var newConfig = {};
@@ -388,30 +375,13 @@
                     newConfig.scoped = node;
                 }
                 newConfig.target = node;
-                newConfig.ref = value;
+                newConfig.refs = value;
                 newConfig.data = data;
                 rava.bind(ref_selector, newConfig);
             }
         } else {
             if (rava.debug) {
                 console.log("unknown type " + (typeof references) + " for references");
-            }
-        }
-    };
-
-    // bindings by attribute
-    var handleAttrBinding = function (node, config, selector, name, data) {
-        var key = name.substring(8);
-        let value = node.getAttribute(name);
-        var target = node;
-        var possibleFunc = target[value];
-        if (typeof possibleFunc === "function") {
-            node.addEventListener(key, getEventHandler(value, target, data));
-            node.removeAttribute(name);
-        } else {
-            if (rava.debug) {
-                console.log("unable to find matching function " + value + " for ")
-                console.log(selector + " with attr " + name);
             }
         }
     };
@@ -428,6 +398,13 @@
         }
     }
 
+    /**
+     * Generats a function to handle events
+     * 
+     * @param {string} funcName 
+     * @param {HTMLElement} target 
+     * @param {Object} data 
+     */
     var getEventHandler = function (funcName, target, data) {
         return function (event) {
             target[funcName](event, data);
