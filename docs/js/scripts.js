@@ -21,13 +21,11 @@ rava.bind ("section.hero", {
     events : {
         // :scope is used here to limit which list items we're interested in.
         // In Rava the :scope keyword triggers an internal process which limites
-        // the selector
-        // to only children of the main element
+        // the selector to only children of the main element
         // this is done due to inconsistent handling of :scope. i.e. I hate IE
         ":scope #nav li" : {
             // All event signatures are in the form of function(event,data)
-            // where
-            // event is the event triggering the function
+            // where event is the event triggering the function
             // data is a set of data that is passed along to all handlers
             // see data handling under concepts
             click : function(event, data) {
@@ -219,14 +217,6 @@ rava.bind (".notification", {
             click : function() {
                 this.remove ();
             }
-        }
-    }
-});
-
-rava.bind (".prettyprint", {
-    callbacks : {
-        created : function(){
-            PR.prettyPrint(this);
         }
     }
 });

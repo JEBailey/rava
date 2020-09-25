@@ -122,8 +122,8 @@
     }
 
     /**
-     * Generates a Function from the string that accepts
-     * 
+     * Generates a Function from the string parameter. The returned Function 
+     * take an Object which is then used to map values into a new string.
      * 
      * @param {string} string 
      */
@@ -248,7 +248,7 @@
                 return;
             }
             if (startsWith.call(name, "on_")) {
-                handleInlineEvents(node, config, selector, data, name);
+                handleTopLevelEvents(node, config, selector, data, name);
                 return;
             }
             if (name == "created" || name == "added" || name == "removed" || name == "data" || name == "scoped" || name == "target") {
@@ -283,33 +283,37 @@
     var handleEvents = function (node, config, selector, data) {
         var events = config.events;
         var target = config.target || node;
-        for (var key in events) {
-            var keyType = events[key];
-            if (typeof keyType === "function") {
-                node.addEventListener(key, getEventHandler(key, target, data));
-            } else if (typeof keyType === "string") {
-                node.addEventListener(key, getEventHandler(keyType, target, data));
+        for (var name in events) {
+            var value = events[name];
+            if (typeof value === "function") {
+                node.addEventListener(name, getEventHandler(config, name, target, data));
+            } else if (typeof value === "string") {
+                node.addEventListener(name, getEventHandler(target, value, target, data));
             } else {
                 var newConfig = {};
-                if (startsWith.call(key.trim(), ':scope')) {
+                if (startsWith.call(name.trim(), ':scope')) {
                     newConfig.scoped = node;
                 }
                 newConfig.target = node;
-                newConfig.events = keyType;
+                newConfig.events = value;
                 newConfig.data = data;
-                var extendedSelector = format(node, key.replace(':scope', selector)).trim();
+                var extendedSelector = format(node, name.replace(':scope', selector)).trim();
                 rava.bind(extendedSelector, newConfig);
             }
         }
     };
 
-    var handleInlineEvents = function (node, config, selector, data, name) {
+    var handleTopLevelEvents = function (node, config, selector, data, name) {
         var key_name = name.substring(3);
         var target = config.target || node;
-        var events = config[name];
-        if (typeof events === "object" ) {
-            for (var ref_selector in events) {
-                var value = events[ref_selector];
+        var value = config[name];
+        if (typeof value === "function") {
+            node.addEventListener(key_name, getEventHandler(config, name, target, data));
+        } else if (typeof value == "string") {
+            node.addEventListener(key_name, getEventHandler(target, value, target, data));
+        } else if (typeof value === "object") {
+            for (var ref_selector in value) {
+                var key_value = value[ref_selector];
                 var newConfig = {};
                 if (startsWith.call(ref_selector.trim(), ':scope')) {
                     newConfig.scoped = node;
@@ -317,15 +321,13 @@
                 }
                 newConfig.target = node;
                 newConfig.events = {};
-                newConfig.events[key_name] = value;
+                newConfig.events[key_name] = key_value;
                 newConfig.data = data;
                 rava.bind(ref_selector, newConfig);
             }
-        } else if (typeof events === "string") {
-            node.addEventListener(key_name, getEventHandler(events, target, data));
         } else {
             if (rava.debug) {
-                console.log("unknown type " + (typeof events) + " for value of " + name + "in config");
+                console.log("unknown type " + (typeof value) + " for value of " + name + "in config");
             }
         }
     };
@@ -386,28 +388,34 @@
         }
     };
 
-    var doCallback = function (element, name, config, data) {
-        if (config.callbacks) {
-            if (config.callbacks[name]) {
-                config.callbacks[name].call(config.target || element, data, element);
-            }
-        } else {
-            if (config[name]) {
-                config[name].call(config.target || element, data, element);
-            }
+    /**
+     * if there is a target this overrides the default element
+     * to be the recipient of the callback.
+     * 
+     * @param {HTMLelement} el 
+     * @param {string} name 
+     * @param {object} config 
+     * @param {object} data 
+     */
+    var doCallback = function (el, name, config, data) {
+        var target = config.target || el;
+        var callbacks = config.callbacks || config;
+        if (callbacks[name]) {
+            callbacks[name].call(target, data, el);
         }
     }
 
     /**
-     * Generats a function to handle events
+     * Generates a function to handle events.
      * 
-     * @param {string} funcName 
-     * @param {HTMLElement} target 
-     * @param {Object} data 
+     * @param {HTMLElement | Object} source - object which holds the function
+     * @param {string} name - name of the function to be called
+     * @param {HTMLElement} target - called in the context of this element
+     * @param {Object} data - common data object
      */
-    var getEventHandler = function (funcName, target, data) {
+    var getEventHandler = function (source, name, target, data) {
         return function (event) {
-            target[funcName](event, data);
+            source[name].call(target, event, data);
         };
     };
 
