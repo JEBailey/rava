@@ -1,0 +1,107 @@
+<div>
+    <h1 class="title">Event Handling</h1>
+    <section>
+        <h2 class="subtitle">Event Configuration with 'events'</h2>
+        Event Handling was designed so that the Rava bound object could listen and react to events occuring not only
+        from the bound object itself, but from child objects, or an object located anywhere on the page.
+
+        There are multiple ways to define Event handlers in the configuration object. The first is to define an
+        Events object which holds a list of events and the associated function to call.
+        <br>
+        <pre class="prettyprint lang-js">
+            {
+                events : {
+                    click : function(event){
+                        //respond to click;
+                    },
+                    submit : function(event,data) {
+                        //something
+                    },
+                }
+            }
+        </pre>
+        <br>
+        This will register an event listener directly on the rava bound element. But what if you want to listen to a
+        click occuring on a child element?
+        <br>
+        <pre class="prettyprint lang-js">
+            {
+                events : {
+                    ":scope foo > bar " : {
+                        click : function(event){
+                            //  located specifically as a child of the original bound element
+                            // 'this' in this context still applies to the original bound rava element 
+                        },
+                    },
+                    ".foobar" : {
+                        submit : function(event,data) {
+                            // anywhere on the page
+                            // 'this' in this context still applies to the original bound rava element 
+                        },
+                    }
+
+                }
+            }
+        </pre>
+        <br>
+        By adding a selector and an object containing event definitions we can now have our bound element listen and
+        respond to events happening anywhere on the page.
+        <br>
+        <h2 class="subtitle">Using the 'on_' prefix</h2>
+        There is a short hand version to declare an event listener by using the 'on_' prefix.
+        <pre class="prettyprint lang-js">
+            {
+                on_click : function(event){
+                    // do something for a click
+                },
+                on_submit : function(event,data) {
+                    // do something for an event
+                },
+            }
+        </pre>
+
+        Using the 'on_' prefix allows us to bypass the events structure and produces a more concise view. It also
+        allows us to group by the event type itself
+
+        <pre class="prettyprint lang-js">
+            {
+                on_click :{
+                    ":scope foo > bar " : function(event){
+                        // do something for a click on a child.
+                    },
+                    ".foobar" : function(event){
+                        // do something for a click on this element 
+                        // that's somewhere on the page.
+                    },
+                },
+            }
+        </pre>
+
+        <h2>Function short hand</h2>
+        Rather than declaring the function directly, you can use a string to identify the function by it's name.
+
+        <pre class="prettyprint lang-js">
+            {
+                on_click : "clickHandler"
+                on_click :{
+                    ":scope foo > bar " : "clickHandler"
+                    ".foobar" : "clickHandler2"
+                },
+                methods : {
+                    clickHandler :function(event){
+                        //
+                    },
+                    clickHandler2 : function(event,data) {
+                        //
+                    }
+                }
+            }
+        </pre>
+        When you're using a string identifier it will look for the corresponding method on the rava bound element.
+        This is an important distinction between a string identifier and the function delcaration. In both cases the
+        functions are executed in the context of the bound element. However with a string declaration the method has
+        to a method on the element, either one that is pre-existing to the binding or one that is declared with a
+        method declaration.
+
+    </section>
+</div>

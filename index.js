@@ -361,7 +361,7 @@
         if (typeof references === "string") {
             if (data[references]) {
                 if (!Array.isArray(data[references])) {
-                    temp = data[references];
+                    var temp = data[references];
                     data[references] = [temp];
                 }
                 data[references].push(node);

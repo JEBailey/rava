@@ -1,39 +1,42 @@
+pre {
+    margin: 0.75rem 1.5rem 0.75rem 1.5rem;
+}
+
 .tabs {
-margin-bottom: -1px !important;
-position: relative;
+    margin-bottom: -1px !important;
+    position: relative;
 }
 
 .tab-content {
-padding: 2em;
-top: 197px;
-background-color: white;
+    padding: 2em;
+    top: 197px;
+    background-color: white;
 }
 
 .columns {
-    margin-top:0;
+    margin-top: 0;
     background-color: white;
-} 
+}
 
 .tab-pane {
     display: none;
 }
-
 
 .tab-pane.is-active {
     display: block;
 }
 
 .is-active {
-display: initial;
+    display: initial;
 }
-    
-.cent{
-display: block;
-margin: 10px auto;
-padding: 5px;
-border: 1px solid #ccc}
-    
-    
+
+.cent {
+    display: block;
+    margin: 10px auto;
+    padding: 5px;
+    border: 1px solid #ccc
+}
+
 .embed-container {
     position: relative;
     padding-bottom: 56.25%;
@@ -41,24 +44,22 @@ border: 1px solid #ccc}
     overflow: hidden;
     max-width: 100%;
 }
-.embed-container iframe,
-.embed-container object,
-.embed-container embed {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
+
+.embed-container iframe, .embed-container object, .embed-container embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .hero-body {
     position: relative;
-
 }
 
 .background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
 }

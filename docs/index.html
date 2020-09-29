@@ -2,30 +2,22 @@
 <html lang="en">
 
 <head>
-<meta charset="utf-8">
-<title>Rava JS</title>
-<meta name="description" content="Rava JS">
-<link rel="shortcut icon" href="../images/fav_icon.png"
-    type="image/x-icon"
->
-<link rel='stylesheet prefetch'
-    href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css'
->
-<link rel='stylesheet prefetch'
-    href='https://use.fontawesome.com/releases/v5.10.2/css/all.css'
->
-<link rel="stylesheet prefetch" href="./css/custom.css">
+    <meta charset="utf-8">
+    <title>Rava JS</title>
+    <meta name="description" content="Rava JS">
+    <link rel="shortcut icon" href="../images/fav_icon.png" type="image/x-icon">
+    <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.0/css/bulma.min.css'>
+    <link rel='stylesheet prefetch' href='https://use.fontawesome.com/releases/v5.10.2/css/all.css'>
+    <link rel="stylesheet prefetch" href="./css/custom.css">
 </head>
 
 <body>
     <nav class="navbar is-light">
         <div class="navbar-brand">
-            <a class="navbar-item" href="#"> <img
-                src="./images/rava.png" alt="Rava - a small web component utility"
-                width="112" height="28"
-            >
+            <a class="navbar-item" href=""> <img src="./images/rava.png" alt="Rava - a small web component utility"
+                    width="112" height="28">
             </a>
-            <div class="navbar-burger burger" data-target="navbarContents" >
+            <div class="navbar-burger burger" data-target="navbarContents">
                 <span></span> <span></span> <span></span>
             </div>
         </div>
@@ -34,29 +26,22 @@
                 <div class="navbar-item">
                     <div class="field is-grouped">
                         <div class="control">
-                            <a class="button"
-                                href="https://github.com/JEBailey/rava"> <span class="icon"> <em
-                                    class="fab fa-github"
-                                ></em>
-                            </span> <span>Git</span>
+                            <a class="button" href="https://github.com/JEBailey/rava"> <span class="icon"> <em
+                                        class="fab fa-github"></em>
+                                </span> <span>Git</span>
                             </a>
                         </div>
                         <p class="control">
                             <a class="button"
-                                href="https://twitter.com/intent/tweet?text=check out RavaJS - its pretty hip;url=https://www.ravajs.com"
-                            > <span class="icon"> <em
-                                    class="fab fa-twitter"
-                                ></em>
-                            </span> <span> Tweet </span>
+                                href="https://twitter.com/intent/tweet?text=check out RavaJS - its pretty hip;url=https://www.ravajs.com">
+                                <span class="icon"> <em class="fab fa-twitter"></em>
+                                </span> <span> Tweet </span>
                             </a>
                         </p>
                         <p class="control">
-                            <a class="button is-primary"
-                                href="https://github.com/JEBailey/rava/tree/master/dist"
-                            > <span class="icon"> <em
-                                    class="fas fa-download"
-                                ></em>
-                            </span> <span>Download</span>
+                            <a class="button is-primary" href="https://github.com/JEBailey/rava/tree/master/dist"> <span
+                                    class="icon"> <em class="fas fa-download"></em>
+                                </span> <span>Download</span>
                             </a>
                         </p>
                     </div>
@@ -64,58 +49,49 @@
             </div>
         </div>
     </nav>
-    <section class="hero is-light">
-        <div class="hero-body">
-            <div class="container">
-                <h2 class="subtitle">A small yet satisfying
-                    library</h2>
+    <section>
+        <div class="columns">
+            <div class="column is-narrow ">
+                <aside class="section menu pl-6 ml-6">
+                    <p class="menu-label"> Welcome </p>
+                    <ul class="menu-list">
+                        <li><a href="#welcome">Introduction</a></li>
+                        <li><a>Get Started</a></li>
+                    </ul>
+                    <p class="menu-label">Configuration</p>
+                    <ul class="menu-list">
+                        <li>
+                            <a class="is-active" href="#events">Event Handling</a>
+                        </li>
+                        <li>
+                            <a href="#callbacks">Callbacks</a>
+                        </li>
+                        <li>
+                            <a href="#methods">Methods</a>
+                        </li>
+                        <li>
+                            <a href="#data">Data Object</a>
+                        </li>
+                        <li>
+                            <a href="#references">References</a>
+                        </li>
+                    </ul>
+                </aside>
             </div>
-            <canvas class="background"
-                style="width: 100%; height: 100%;"
-            ></canvas>
-        </div>
-        <div class="tabs is-boxed is-centered main-menu" id="nav">
-            <ul>
-                <li data-target="pane-1" id="1" class="is-active">
-                    <a> <span class="icon is-small"><em
-                            class="fab fa-empire"
-                        ></em></span> <span>Welcome</span>
-                </a>
-                </li>
-                <li data-target="pane-2" id="2"><a> <span
-                        class="icon is-small"
-                    ><em class="fas fa-book"></em></span> <span>Documentation</span>
-                </a></li>
-                <li data-target="pane-3" id="3"><a> <span
-                        class="icon is-small"
-                    ><em class="fab fa-superpowers"></em></span> <span>Concepts</span>
-                </a></li>
-            </ul>
-        </div>
-        <div class="columns is-centered">
-            <div
-                class="tab-content column is-full-mobile is-three-quarters-desktop is-half-widescreen"
-            >
-            <div class="notification is-success">
-                <button class="delete"></button>
-                2.2.0 has been released - Aug 2019
-            </div>
-                <div class="remote-content tab-pane is-active"
-                    id="pane-1" data-target="./content/welcome.html"
-                ></div>
-                <div class="remote-content tab-pane" id="pane-2"
-                    data-target="./content/documentation.html"
-                ></div>
-                <div class="remote-content tab-pane" id="pane-3"
-                    data-target="./content/concepts.html"
-                ></div>
+            <div class="column ">
+                <div class="remote-content tab-pane is-active" id="welcome" data-target="./content/welcome.html"></div>
+                <div class="remote-content tab-pane" id="references" data-target="./content/references.html"></div>
+                <div class="remote-content tab-pane" id="events" data-target="./content/events.html"></div>
+                <div class="remote-content tab-pane" id="callbacks" data-target="./content/callbacks.html"></div>
+                <div class="remote-content tab-pane" id="data" data-target="./content/data.html"></div>
+                <div class="remote-content tab-pane" id="methods" data-target="./content/methods.html"></div>
             </div>
         </div>
     </section>
     <script src="js/rava.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?autorun=false;skin=sunburst"></script>
+    <!--    <script
+        src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?autorun=false;skin=sunburst"></script> -->
     <script src="js/scripts.js"></script>
-    <script src="js/particles.min.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,27 @@
+<div>
+    <h1 class="title">References</h1>
+    <section>
+        A reference is where we store a reference to one or more elements to the data object for a specific rava
+        binding. A reference is specified using the refs configuration
+
+        <pre class="prettyprint lang-js">
+            {
+                // stores a reference to the current element as data with the key 'foo'
+                // i.e. data.foo
+                refs : "foo"
+            }
+        </pre>
+
+        By using an object in the configuration you can store multiple references
+
+        <pre class="prettyprint lang-js">
+            {
+                refs : {
+                    ".foo" : "foo",
+                    ".bar" : "bar",
+                }
+            }
+        </pre>
+
+    </section>
+</div>

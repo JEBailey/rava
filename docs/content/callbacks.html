@@ -1,0 +1,31 @@
+<div>
+    <h1 class="title">Callbacks</h1>
+    <section>
+        As part of a Rava binding, Rava assigns a data object that is passed to all event handlers whenever that handler
+        is triggered. This data object can be a unique object, or a shared object that is passed to all matches of a selector. 
+
+        <pre class="prettyprint lang-js">
+            {
+                // since you are declaring a data object this data object will be shared by all matching bindings
+                data : {
+                    count : 0,
+                }
+            }
+        </pre>
+        <pre class="prettyprint lang-js">
+            {
+                // if you don't declare a data object a new object will be created for each match
+            }
+        </pre>
+        In addition to an object declaration you can use a function to generate the data object. The function is called on each primary binding.
+
+        <pre class="prettyprint lang-js">
+            {
+                data : function(){
+                    //do something spectacular
+                }
+            }
+        </pre>
+
+    </section>
+</div>
