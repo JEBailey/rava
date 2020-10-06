@@ -76,7 +76,6 @@
         });
     };
 
-
     /**
      * binds the elements that match the provided css selector with a specific configuration
      * then uses the css selector to find all the matching elements to configure.
@@ -427,7 +426,7 @@
     };
 
     /**
-     * When a child binding is identified this handles the creation and binding of the child configuration
+     * When a child binding is identified, this handles the creation and binding of the child configuration
      * 
      * 
      * @param {string} key 

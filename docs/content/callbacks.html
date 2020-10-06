@@ -1,43 +1,38 @@
-<div>
+<div class="content">
     <h1 class="title">Callbacks</h1>
-    <section>
-        Callbacks are part of the lifecycle management that Rava allows you to do. There are three lifecycle events that rava pays attention to.
-        <ul>
-            <li>created</li>
-            <li>added</li>
-            <li>removed</li>
-        </ul>
-        <pre class="box prettyprint lang-js">
-            {
-                // since you are declaring a data object this data object will be shared by all matching bindings
-                callbacks : {
-                    created : function(data, element){
-                        //on initial binding by Rava perform this callback.
-                    },
-                    added : function (data, element){
-                        //when the element is added to the dom
-                    },
-                    removed : function (data,element) {
-                        //when the element is removed from the dom
-                    }
-                }
-            }
-        </pre>
-        The default behaviour is a new data object per binding. This default occurs if no data object is defined.
-        <pre class="box prettyprint lang-js">
-            {
-                // if you don't declare a data object a new object will be created for each match
-            }
-        </pre>
-        In addition to an object declaration you can use a function to generate the data object. The function is called on each primary binding.
-
-        <pre class="box prettyprint lang-js">
-            {
-                data : function(){
-                    //do something spectacular
-                }
-            }
-        </pre>
-
-    </section>
+    Callbacks are part of the lifecycle management that Rava allows you to do. There are three lifecycle events that rava pays attention to.
+    <ul>
+        <li>created</li>
+        <li>added</li>
+        <li>removed</li>
+    </ul>
+    <pre class="box prettyprint lang-js">
+rava.bind(".example",{
+    // since you are declaring a data object this data object will
+    // be shared by all matching bindings
+    callbacks : {
+        created : function(data, element){
+            //on initial binding by Rava perform this callback.
+        },
+        added : function (data, element){
+            //when the element is added to the dom
+        },
+        removed : function (data,element) {
+            //when the element is removed from the dom
+        }
+    }
+});
+    </pre>
+    You may also scope the lifecycle events so that you can trigger a function when a lifecycle event occurs on another element
+    <pre class="box prettyprint lang-js">
+rava.bind(".example",{
+    callbacks : {
+        "a .special " : {
+            created : function(data, element){
+                //on initial binding by Rava perform this callback.
+            },
+        },
+    }
+});
+    </pre>
 </div>

@@ -1,0 +1,21 @@
+<div>
+    <h1 class="title">Advanced Options</h1>
+
+    As part of a Rava binding, Rava assigns a data object that is passed to all event handlers whenever that handler
+    is triggered. This data object can be a unique object, or a shared object that is passed to all matches of a
+    selector.
+
+    By declaring the data object in the configuration you will share that object with all rava bindings
+
+    <pre class="box prettyprint lang-js">
+rava.bind("#example",{
+    // heres all rava bindings will have access to data.count
+    data : {
+        count : 0,
+    }
+});
+    </pre>
+
+    By not declaring anything. Rava will automatically generate a unique data object for each instance of a binding.
+
+</div>

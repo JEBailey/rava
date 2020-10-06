@@ -1,0 +1,287 @@
+<!doctype html>
+<div class="content">
+    <br>
+    <div class="level">
+        <div class="level-item">
+            <em class="mx-2 is-size-1 fab fa-internet-explorer"></em>
+            <em class="mx-2 is-size-1 fab fa-edge"></em>
+            <em class="mx-2 is-size-1 fab fa-firefox"></em>
+            <em class="mx-2 is-size-1 fab fa-chrome"></em>
+        </div>
+    </div>
+    <div class="has-text-centered">IE 11 &bull; Edge &bull;
+        FireFox &bull; Chrome</div>
+    <br>
+    <p>RavaJS is a small, less than 3k when compressed,utility which wraps the MutationObserver and allows you to
+        configure and react to new HTMLelements being added to the page without a need to constantly check for their
+        existance.
+        <br><br>
+        RavaJS also allows you to define methods, events handlers, and lifecycles that are
+        dynamically mapped to the matching elements. This combination of responding as soon as an element
+        is added and the ability to add new event listeners and methods to that object.
+    </p>
+    <h2 class="title is-2">How to start</h2>
+    <h4 class="subtitle is-4">Setup</h4>
+    <pre class="prettyprint lang-html">
+
+&lt;script src="https://cdn.jsdelivr.net/npm/rava@2.2.0/dist/rava.min.js"&gt;&lt;/script&gt;
+            </pre>
+    <h4 class="subtitle is-4">Usage</h4>
+    <p>Now you can use css selectors to find html elements and add
+        new functionality</p>
+    <pre class="prettyprint lang-js">
+rava.bind('time',{
+    callbacks:{
+        created: function(){
+            this.start();
+        }
+    },
+    methods : {
+        start : function() {
+            this.tick();
+            this.__timeInterval = setInterval(this.tick,1000);
+        },
+        stop : function() {
+            this.__timeInterval = clearInterval(this.__timeInterval);
+        },
+        tick : function() {
+            this.textContent = new Date().toLocaleTimeString();
+        }
+    },
+    events : {
+        click : function() {
+            if (this.__timeInterval){
+                this.stop();
+            } else {
+                this.start();
+            }
+        }
+    }
+});
+        </pre>
+    Combined with some HTML
+    <pre class="prettyprint lang-js">
+
+&lt;h2>"The time" she opined ,"is now &lt;time>&lt;/time>"&lt;/h2>
+        </pre>
+    Creates
+    <blockquote>
+        <h2>
+            "The time" she opined ,"is now
+            <time></time>
+            "
+        </h2>
+    </blockquote>
+    <h1>Configuration</h1>
+    <section>
+        To create a Rava binding you'll need to pass a Configuration object to the Rava method.
+        <pre class="prettyprint lang-js">
+            // rava config object is a standard js object with specific keys that are used
+            // to configure the selected element
+            {
+                // data represents a special object which is handed off to each callback 
+                // and event handler that is defined in the configuration. The data object
+                // is either a state that is unique to the selected root element or a
+                // shared state that is used for all elements that match the root selector
+                // if the data is an object, that object is applied to all selected elements
+                // without any additional changes. if the data field is a function, then the
+                // function is called for each matching root element.
+                // This is an optional parameter. If left out a new Object is created for 
+                // each match.
+                data : {}, // object or function
+                
+                // scoped is used internally to identify the root element that the scoped CSS 
+                // is a child of. This can also be used when creating the configuration to 
+                // manually identify the root parent.
+                scoped : HtmlElement,
+                
+                // used internally to identify which object will be 'this' when an event or 
+                // or function is called. This can be manually configured to allow a
+                // configuration to purposefully use a specific 'this' for context
+                target : HTMLElement,
+                
+            
+                // there are three defined callbacks: added, created, and removed.
+                // callbacks are triggered by rava itself as the element is initially
+                // created, added to the dom, and removed from the dom.
+                // 
+                // callbacks support nested selectors, if an object is defined rather
+                // than the three callbacks, the key is then assumed to be a selector
+                // for other elements
+                //  
+                // the signature of a callback is 
+                // function(data,element)
+                // 
+                callbacks:{
+            
+                    created: function(data,element){
+                        this.start();
+                    },
+                    added: function(data,element){
+                        this.start();
+                    },
+                    removed: function(data,element){
+                        this.start();
+                    },
+                    "body > h1.foo" : {
+                        added : function(data, element){
+                            // element on this call is the h1.foo element that the css
+                            // identified, while the data object and the 'this' is from
+                            // the original configuration
+                        }
+                    }
+            
+                },
+
+                // besides defining the callbacks under the callbacks paramter you can directly put the callbacks
+                // into the configuration
+
+                created : function() {
+                    //directly defined callback for the current rava binding
+                }
+
+                events : {
+                    // events support nested selectors and are context bound to the selected
+                    // element
+                    click : function(event, data) {
+                        // event is the standard js event object 
+                        // data is the defined data object 
+                        // note: 'this' is the bound element
+                    },
+                    "onclick" : function (event,data) {
+                        // names in quotes are the same as those without
+                    }
+                    ":scope a.foo" : {
+                        // this is a css selector to tie other elements to the scope and binding 
+                        // of the original rava binding
+                        // :scope keyword at the begining will force a match on the child elements
+                        // of of the original element
+                        "click" : function (event, data) {
+                            // 'this' is still the top level bound element
+                        }
+                    }
+
+                    // additionally you can provide a string instead of a function and the string will be used
+                    // to identify the method on the rava binding which will handle the event call.
+                    "submit" : "handleSubmit"
+            
+                },
+
+                methods : {
+                    // methods are both moved to, and context bound to the selected element
+                    // and do NOT support nested selectors 
+                    start : function() {
+                    },
+                    stop : function() {
+                    }
+                },
+
+            };
+     </pre>
+        <h1>Event Handling</h1>
+        <section>
+            <h2>Event Configuration with 'events'</h2>
+            Event Handling was designed so that the Rava bound object could listen and react to events occuring not only
+            from the bound object itself, but from child objects, or an object located anywhere on the page.
+
+            There are multiple ways to define Event handlers in the configuration object. The first is to define an
+            Events object which holds a list of events and the associated function to call.
+
+            <pre class="prettyprint lang-js">
+                {
+                    events : {
+                        click : function(event){
+                            //respond to click;
+                        },
+                        submit : function(event,data) {
+                            //something
+                        },
+                    }
+                }
+            </pre>
+
+            This will register an event listener directly on the rava bound element. But what if you want to listen to a
+            click occuring on a child element?
+
+            <pre class="prettyprint lang-js">
+                {
+                    events : {
+                        ":scope foo > bar " : {
+                            click : function(event){
+                                //  located specifically as a child of the original bound element
+                                // 'this' in this context still applies to the original bound rava element 
+                            },
+                        },
+                        ".foobar" : {
+                            submit : function(event,data) {
+                                // anywhere on the page
+                                // 'this' in this context still applies to the original bound rava element 
+                            },
+                        }
+
+                    }
+                }
+            </pre>
+
+            By adding a selector and an object containing event definitions we can now have our bound element listen and
+            respond to events happening anywhere on the page.
+
+            <h2>Using the 'on_' prefix</h2>
+
+            There is a short hand version to declare an event listener by using the 'on_' prefix.
+            <pre class="prettyprint lang-js">
+                {
+                    on_click : function(event){
+                        // do something for a click
+                    },
+                    on_submit : function(event,data) {
+                        // do something for an event
+                    },
+                }
+            </pre>
+
+            Using the 'on_' prefix allows us to bypass the events structure and produces a more concise view. It also
+            allows us to group by the event type itself
+
+            <pre class="prettyprint lang-js">
+                {
+                    on_click :{
+                        ":scope foo > bar " : function(event){
+                            // do something for a click on a child.
+                        },
+                        ".foobar" : function(event){
+                            // do something for a click on this element 
+                            // that's somewhere on the page.
+                        },
+                    },
+                }
+            </pre>
+
+            <h2>Function short hand</h2>
+            Rather than declaring the function directly, you can use a string to identify the function by it's name.
+
+            <pre class="prettyprint lang-js">
+                {
+                    on_click : "clickHandler"
+                    on_click :{
+                        ":scope foo > bar " : "clickHandler"
+                        ".foobar" : "clickHandler2"
+                    },
+                    methods : {
+                        clickHandler :function(event){
+                            //
+                        },
+                        clickHandler2 : function(event,data) {
+                            //
+                        }
+                    }
+                }
+            </pre>
+            When you're using a string identifier it will look for the corresponding method on the rava bound element.
+            This is an important distinction between a string identifier and the function delcaration. In both cases the
+            functions are executed in the context of the bound element. However with a string declaration the method has
+            to a method on the element, either one that is pre-existing to the binding or one that is declared with a
+            method declaration.
+
+        </section>
+</div>

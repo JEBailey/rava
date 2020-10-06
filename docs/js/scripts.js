@@ -184,8 +184,8 @@ rava.bind("aside", {
         }
     },
     refs: {
-        ":root .tab-pane": "content",
-        ".menu-list a": "menuItems",
+        ":root .remote-content": "content",
+        ".menu-list a": "menuItems[]",
     },
     events_click: {
         ":root .menu-list a": "menuItemSelected",

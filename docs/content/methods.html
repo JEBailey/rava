@@ -1,30 +1,14 @@
 <div>
     <h1 class="title">Method Declaration</h1>
-    <section>
-        Unlike other options, the method configuration doesn't support a scoped method of declaration. All methods
-        declared are mapped directly onto the primary binding.
-
-        The traditional way of declaring functions is to use the methods Object
-        <pre class="prettyprint lang-js">
-            {
-                methods : {
-                    basicFunctionDecl : function() {
-                        //do stuff
-                    }
-                }
+    Unlike other options, the method configuration doesn't support a scoped method of declaration. All methods
+    declared are mapped directly onto the primary binding.
+    <pre class="box prettyprint lang-js">
+    rava.bind(".example",{
+        methods : {
+            basicFunctionDecl : function() {
+                //do stuff
             }
-        </pre>
-
-        To reduce depth the configuration object now supports direct mapping of any functions that are not keyed to a
-        specific feature
-
-        <pre class="prettyprint lang-js">
-            {
-                basicFunctionDecl : function(){
-                    //do stuff
-                }
-            }
-        </pre>
-
-    </section>
+        }
+    });
+    </pre>
 </div>
