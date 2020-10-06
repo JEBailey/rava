@@ -9,10 +9,11 @@
     <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.0/css/bulma.min.css'>
     <link rel='stylesheet prefetch' href='https://use.fontawesome.com/releases/v5.10.2/css/all.css'>
     <link rel="stylesheet prefetch" href="./css/custom.css">
+    <link rel="stylesheet prefetch" href="./css/a11y-dark.css">
 </head>
 
 <body>
-    <nav class="navbar is-light">
+    <nav class="navbar">
         <div class="navbar-brand">
             <a class="navbar-item" href=""> <img src="./images/rava.png" alt="Rava - a small web component utility"
                     width="112" height="28">
@@ -52,7 +53,7 @@
     <section>
         <div class="columns">
             <div class="column is-narrow ">
-                <aside class="section menu pl-6 ml-6">
+                <aside class="section menu">
                     <p class="menu-label"> Welcome </p>
                     <ul class="menu-list">
                         <li><a href="#welcome">Introduction</a></li>
@@ -61,7 +62,7 @@
                     <p class="menu-label">Configuration</p>
                     <ul class="menu-list">
                         <li>
-                            <a class="is-active" href="#events">Event Handling</a>
+                            <a href="#events">Event Handling</a>
                         </li>
                         <li>
                             <a href="#callbacks">Callbacks</a>
@@ -78,20 +79,20 @@
                     </ul>
                 </aside>
             </div>
-            <div class="column ">
-                <div class="remote-content tab-pane is-active" id="welcome" data-target="./content/welcome.html"></div>
-                <div class="remote-content tab-pane" id="references" data-target="./content/references.html"></div>
-                <div class="remote-content tab-pane" id="events" data-target="./content/events.html"></div>
-                <div class="remote-content tab-pane" id="callbacks" data-target="./content/callbacks.html"></div>
-                <div class="remote-content tab-pane" id="data" data-target="./content/data.html"></div>
-                <div class="remote-content tab-pane" id="methods" data-target="./content/methods.html"></div>
+            <div class="column col-content">
+                <div class="remote-content tab-pane" data-ref="welcome" data-target="./content/welcome.html"></div>
+                <div class="remote-content tab-pane" data-ref="references" data-target="./content/references.html"></div>
+                <div class="remote-content tab-pane" data-ref="events" data-target="./content/events.html"></div>
+                <div class="remote-content tab-pane" data-ref="callbacks" data-target="./content/callbacks.html"></div>
+                <div class="remote-content tab-pane" data-ref="data" data-target="./content/data.html"></div>
+                <div class="remote-content tab-pane" data-ref="methods" data-target="./content/methods.html"></div>
             </div>
         </div>
     </section>
+    <script src="js/highlight.pack.js"></script>
     <script src="js/rava.js"></script>
-    <!--    <script
-        src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?autorun=false;skin=sunburst"></script> -->
     <script src="js/scripts.js"></script>
+
 </body>
 
 </html>

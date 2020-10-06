@@ -1,107 +1,159 @@
-<div>
-    <h1 class="title">Event Handling</h1>
+<div class="section">
+    <h1 class="subtitle is-2">Event Handling</h1>
     <section>
-        <h2 class="subtitle">Event Configuration with 'events'</h2>
-        Event Handling was designed so that the Rava bound object could listen and react to events occuring not only
-        from the bound object itself, but from child objects, or an object located anywhere on the page.
-
-        There are multiple ways to define Event handlers in the configuration object. The first is to define an
-        Events object which holds a list of events and the associated function to call.
+        Event Handling was designed so that the Rava bound object could listen and react to events that occur on the
+        bound object, child objects or from an element located anywhere in the dom. There are
+        multiple ways to define Event handlers in the configuration object. The first is to define an
+        Events object which holds a list of events and an associated function to call.<br>
         <br>
-        <pre class="prettyprint lang-js">
-            {
-                events : {
-                    click : function(event){
-                        //respond to click;
-                    },
-                    submit : function(event,data) {
-                        //something
-                    },
-                }
-            }
+        This will register an event listener directly on the rava bound element.<br>
+        <br>
+        <pre class="box prettyprint lang-js">
+    rava.bind("#example", {
+        events : {
+            click : function(event){
+                //respond to click;
+            },
+            submit : function(event,data) {
+                //something
+            },
+        }
+    });
         </pre>
         <br>
-        This will register an event listener directly on the rava bound element. But what if you want to listen to a
-        click occuring on a child element?
+        Often times we want to react to events that occur on a child of our binding . We can do this by adding a
+        selector
+        and an object containing event definitions. We can now have our bound element listen and
+        respond to events happening anywhere on the page.<br>
         <br>
-        <pre class="prettyprint lang-js">
-            {
-                events : {
-                    ":scope foo > bar " : {
-                        click : function(event){
-                            //  located specifically as a child of the original bound element
-                            // 'this' in this context still applies to the original bound rava element 
-                        },
-                    },
-                    ".foobar" : {
-                        submit : function(event,data) {
-                            // anywhere on the page
-                            // 'this' in this context still applies to the original bound rava element 
-                        },
-                    }
+        <pre class="box prettyprint lang-js">
+    rava.bind(".example",{
+        events : {
+            // :scope is a css selector that specifies that it is a child of a specific item
+            // in this case the child of this specific rava binding. Leaving out ':scope' will cause
+            // this binding to match with any element anywhere.
+            ":scope foo > bar " : {
+                click : function(event){
+                    //  located specifically as a child of the original bound element
+                    // 'this' in this context still applies to the original bound rava element 
+                },
+            },
 
-                }
+            // Since this selector has no ':scope' defined it will match against the foobar class anywhere on the page
+            ".foobar" : {
+                submit : function(event,data) {
+                    // anywhere on the page
+                    // 'this' in this context still applies to the original bound rava element 
+                },
             }
+
+        }
+    });
         </pre>
         <br>
-        By adding a selector and an object containing event definitions we can now have our bound element listen and
-        respond to events happening anywhere on the page.
+        Rather than declaring the function directly, you can also use a string to identify the function by it's name.
+        When using a string to identify a function the function must exist on the configuration<br>
         <br>
-        <h2 class="subtitle">Using the 'on_' prefix</h2>
-        There is a short hand version to declare an event listener by using the 'on_' prefix.
-        <pre class="prettyprint lang-js">
-            {
-                on_click : function(event){
-                    // do something for a click
-                },
-                on_submit : function(event,data) {
-                    // do something for an event
-                },
+        <pre class="box prettyprint lang-js">
+    rava.bind(".example a",{
+        events : {
+            // :scope is a css selector that specifies that it is a child of a specific item
+            // in this case the child of this specific rava binding. Leaving out ':scope' will cause
+            // this binding to match with any element anywhere.
+            ":scope foo > bar " : {
+                click : "clickHandler"
+            },
+
+            // Since this selector has no ':scope' defined it will match against the foobar class anywhere on the page
+            ".foobar" : {
+                submit : "submitHandler"
             }
+        },
+        methods : {
+            clickHandler : function(event){
+                //handles the clicks
+            }, 
+            submitHandler : function(event){
+                //handles a submit
+            }, 
+        }
+
+    });
+        </pre>
+        There is a short hand version to declare an event listener by using the 'events_' prefix.<br>
+        <br>
+        <pre class="box prettyprint lang-js">
+    rava.bind("foo > .example",{
+        events_click : function(event){
+            // do something for a click
+        },
+        events_submit : function(event,data) {
+            // do something for an event
+        },
+    });
+        </pre>
+        Using the 'events_' prefix allows us to bypass the events structure and produces a more concise view.<br>
+        <br>
+        <pre class="box prettyprint lang-js">
+    rava.bind(".example", {
+        //This declaration 
+        events {
+            click : function(event){
+                // do something for a click
+            },
+        }
+
+        //Is identical to this declaration
+        events_click : function(event){
+            // do something for a click
+        },
+    });
+        </pre>
+        It also allows us to group by the event type itself<br>
+        <br>
+        <pre class="box prettyprint lang-js">
+    rava.bind("#foo",{
+        events_click :{
+            ":scope foo > bar " : function(event){
+                // do something for a click on a child.
+            },
+            ".foobar" : function(event){
+                // do something for a click on this element 
+                // that's somewhere on the page.
+            },
+        },
+    });
         </pre>
 
-        Using the 'on_' prefix allows us to bypass the events structure and produces a more concise view. It also
-        allows us to group by the event type itself
-
-        <pre class="prettyprint lang-js">
-            {
-                on_click :{
-                    ":scope foo > bar " : function(event){
-                        // do something for a click on a child.
-                    },
-                    ".foobar" : function(event){
-                        // do something for a click on this element 
-                        // that's somewhere on the page.
-                    },
-                },
+        Rather than declaring the function directly, you can use a string to identify the function by it's name.<br>
+        <br>
+        <pre class="box prettyprint lang-js">
+    rava.bind(".foobar",{
+        events_click : "clickHandler"
+        events_click :{
+            ":scope foo > bar " : "clickHandler"
+            ".foobar" : "clickHandler2"
+        },
+        methods : {
+            clickHandler :function(event){
+                //
+            },
+            clickHandler2 : function(event,data) {
+                //
             }
-        </pre>
-
-        <h2>Function short hand</h2>
-        Rather than declaring the function directly, you can use a string to identify the function by it's name.
-
-        <pre class="prettyprint lang-js">
-            {
-                on_click : "clickHandler"
-                on_click :{
-                    ":scope foo > bar " : "clickHandler"
-                    ".foobar" : "clickHandler2"
-                },
-                methods : {
-                    clickHandler :function(event){
-                        //
-                    },
-                    clickHandler2 : function(event,data) {
-                        //
-                    }
-                }
+        },
+        changes : {
+            src : function(event, data) {
+                do the magnifier thing
             }
+        }
+    });
         </pre>
         When you're using a string identifier it will look for the corresponding method on the rava bound element.
         This is an important distinction between a string identifier and the function delcaration. In both cases the
         functions are executed in the context of the bound element. However with a string declaration the method has
         to a method on the element, either one that is pre-existing to the binding or one that is declared with a
-        method declaration.
-
+        method declaration.<br>
+        <br>
     </section>
 </div>

@@ -7,7 +7,7 @@
 
         By declaring the data object in the configuration you will share that object with all rava bindings
 
-        <pre class="prettyprint lang-js">
+        <pre class="box prettyprint lang-js">
             {
                 // heres all rava bindings will have access to data.count
                 data : {
@@ -18,7 +18,7 @@
 
         By not declaring anything. Rava will automatically generate a unique data object for each instance of a binding.
 
-        <pre class="prettyprint lang-js">
+        <pre class="box prettyprint lang-js">
             {
                 //the worlds simplest code example.. Just don't configure data
             }
@@ -27,7 +27,7 @@
         In addition to an object declaration, or lack of one, you can use a function to generate the data object. The
         function is called on each primary binding.
 
-        <pre class="prettyprint lang-js">
+        <pre class="box prettyprint lang-js">
             {
                 data : function(){
                     //do something spectacular

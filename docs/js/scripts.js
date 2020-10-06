@@ -16,21 +16,7 @@ rava.bind(".burger", {
     }
 });
 
-rava.bind(".remote-content", {
-    callbacks: {
-        created: function () {
-            var currentElement = this;
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    currentElement.innerHTML = this.responseText;
-                }
-            };
-            xhttp.open("GET", this.dataset.target, true);
-            xhttp.send();
-        }
-    }
-});
+
 
 // first rava example
 rava.bind('time', {
@@ -80,7 +66,7 @@ rava.bind('table', {
         // is used to trigger a new scoped binding that is looking for elements
         // beneath the
         // target element to be bound to
-        ":scope tbody tr": {
+        "tbody tr": {
             click: function (event) {
                 // allthough we have the event listener on the 'tr' element. The
                 // callback is
@@ -101,7 +87,7 @@ rava.bind('table', {
         // This is a global intercept. Because no ':scope' is defined, we've
         // created a binding
         // that will occur anywhere in the document.
-        ".button.is-warning": {
+        ":root .button.is-warning": {
             click: function () {
                 window.alert("oh my gosh");
             }
@@ -119,12 +105,12 @@ rava.bind('modal', {
             // Caution should be taken when doing a global intercept. the following
             // binding will be applied
             // for each element that matches '.modal' in the parent binding.
-            ".modal-trigger" : {
+            ":root .modal-trigger": {
                 click: function () {
                     this.classList.add('is-active');
                 }
             },
-            ":scope .modal-close": {
+            ".modal-close": {
                 click: function () {
                     this.classList.remove('is-active');
                 }
@@ -162,42 +148,83 @@ rava.bind(".notification", {
     }
 });
 
+rava.bind(".remote-content", {
+    created: function () {
+        this.loadContent();
+        var hash = location.hash;
+        if (!hash) {
+            hash = "welcome";
+        } else {
+            hash = hash.substring(1);
+        }
+        if (hash === this.dataset["ref"]) {
+            this.classList.add("is-active");
+        }
+    },
+    methods: {
+        loadContent: function () {
+            var currentElement = this;
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    currentElement.innerHTML = this.responseText;
+                }
+            };
+            xhttp.open("GET", this.dataset.target, true);
+            xhttp.send();
+        }
+    }
+});
+
 rava.bind("aside", {
+    created: function (data) {
+        var hash = location.hash;
+        if (hash) {
+            this.highlightMenuItem(hash, data)
+        }
+    },
     refs: {
         ":root .tab-pane": "content",
-        ".menu-list a" : "menuItems",
+        ".menu-list a": "menuItems",
     },
-    on_click: {
-        ":scope .menu-list a": "menuItemSelected",
+    events_click: {
+        ":root .menu-list a": "menuItemSelected",
     },
-    menuItemSelected: function (event, data) {
-        var thing = event.target.getAttribute("href");
-        console.log("click link");
-        if (thing){
-            thing = thing.substring(1);
-            var thang;
-            var content = data.content;
-            var arrayLength = content.length;
-            for (var i = 0; i < arrayLength; i++) {
-                var item = content[i];
-                if (item.id == thing){
-                    thang = event.target;
-                    item.classList.add("is-active");
-                    console.log("click link");
-                } else {
-                    item.classList.remove("is-active");
-                }
+    methods: {
+        menuItemSelected: function (event, data) {
+            var href = event.target.getAttribute("href");
+            if (href) {
+                var shortHref = href.substring(1);
+                data.content.forEach(function (item) {
+                    if (item.dataset["ref"] == shortHref) {
+                        item.classList.add("is-active");
+                    } else {
+                        item.classList.remove("is-active");
+                    }
+                });
+                this.highlightMenuItem(href, data);
             }
-            for (var j = 0; j < data.menuItems.length; j++) {
-                var menuItem = data.menuItems[j];
-                var doesContain = menuItem == thang;
-                if (doesContain){
-                    menuItem.classList.add("is-active");
-                } else {
-                    menuItem.classList.remove("is-active");
+        },
+        highlightMenuItem: function (id, data) {
+            data.menuItems.forEach(function (menuItem) {
+                var href = menuItem.getAttribute("href");
+                if (href) {
+                    if (href == id) {
+                        menuItem.classList.add("is-active");
+                    } else {
+                        menuItem.classList.remove("is-active");
+                    }
                 }
-            }
+            });
         }
+    }
+});
 
-    },
+rava.bind(".prettyprint", {
+    callbacks: {
+        created: function () {
+            console.log("pretty printing " + this);
+            window.hljs.highlightBlock(this);
+        }
+    }
 });

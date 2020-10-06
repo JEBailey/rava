@@ -1,27 +1,43 @@
 <div>
-    <h1 class="title">References</h1>
+    <h1 class="title">References using Ref and Refs</h1>
     <section>
-        A reference is where we store a reference to one or more elements to the data object for a specific rava
-        binding. A reference is specified using the refs configuration
-
-        <pre class="prettyprint lang-js">
+        A common use case is the need to create a reference to an object in the data object that is managed by a
+        binding. To facillitate this there are two configurations that can be used.
+        <b>Ref</b> is used to store a specific reference to data. The first object matching the selector will be stored.
+        
+        <pre class="box prettyprint lang-js">
             {
-                // stores a reference to the current element as data with the key 'foo'
-                // i.e. data.foo
-                refs : "foo"
+                // stores a reference to the first element foo that is found as a child of 'this'
+                // i.e. data.bar
+                ref : {
+                    foo : "bar"
+                },
             }
         </pre>
-
-        By using an object in the configuration you can store multiple references
-
-        <pre class="prettyprint lang-js">
+        If there is only a string then ref with store 'this' to the data object.
+        <pre class="box prettyprint lang-js">
             {
-                refs : {
-                    ".foo" : "foo",
+                // stores a reference to 'this' as bar in the data object
+                ref : "bar"
+            }
+        </pre>
+        By using an object in the configuration you can store multiple references
+        <pre class="box prettyprint lang-js">
+            {
+                ref : {
+                    ".foo" : "foo", // a single item of class foo
                     ".bar" : "bar",
                 }
             }
         </pre>
-
+        <b>Refs</b> is used if you need to store a collection of objects. Using Refs will also result in an array of one or more matching items
+        <pre class="box prettyprint lang-js">
+            {
+                refs : {
+                    ".foo" : "foo", // an array of items with the class of foo
+                    ".bar" : "bar", // an array of items with the class of bar
+                }
+            }
+        </pre>
     </section>
 </div>
