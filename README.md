@@ -1,7 +1,6 @@
 # Rava
-Rava assists in website functionality where interactive content is desired as well as a small footprint. See https://www.ravajs.com
-## Why
-Rava is designed to assist with websites with simple dynamic content where content may be pulled in or generated after the page is rendered.
-## How
-Rava allows you to bind functions and event handlers to HTML elements defined by a CSS selector. This binding will occur on all existing elements as well as additional elements that are later added to the page.
+RavaJS is a small, less than 3k when compressed,utility which wraps the MutationObserver and allows you to
+configure and react to new HTMLElements being added to a page without a need to constantly check for their existence.
+
+RavaJS also allows you to define methods, events handlers, and lifecycles that are dynamically mapped to the matching element. This combination of responding as soon as an element is added and the ability to add new event listeners and methods to that object enables a robust set of features
 

@@ -56,13 +56,25 @@
         return string;
     }
 
+    // polyfill to support IE 11
+    var customEvent = (function () {
+        if (typeof window.CustomEvent === "function") {
+            return window.CustomEvent;
+        }
+        return function (event, params) {
+            params = params || { bubbles: false, cancelable: false, detail: null };
+            var evt = document.createEvent('CustomEvent');
+            evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+            return evt;
+        }
+    })();
+
     //During selector querying a class with an unescaped dash '-' in the name is not correctly found 
     var escape = function (sel) {
-        return sel.replace(/(?<!\\)-/g, function (ch) {
+        return sel.replace(/^[\\]-/g, function (ch) {
             return "\\" + ch;
         });
     };
-
 
     /**
      * binds the elements that match the provided css selector with a specific configuration
@@ -97,12 +109,12 @@
      * @param {string} selector - CSS styled selector for an object
      */
     rava.find = function (element, selector) {
-        traverse(element, function (el) {
+        var found = traverse(element, function (el) {
             if (matches.call(el, selector)) {
                 return el;
             }
         });
-        return null;
+        return found;
     }
 
     /** 
@@ -119,6 +131,17 @@
             }
         });
         return response;
+    }
+
+    /**
+     *  Utility function to create an event and dispatch it from the provided element
+     * @param {HTMLElement} el 
+     * @param {string} eventname 
+     * @param {Object} params 
+     */
+    rava.event = function (el, type, params) {
+        var event = new customEvent(type, params);
+        el.dispatchEvent(event);
     }
 
     /**
@@ -157,18 +180,25 @@
         });
     };
 
-    // internal function that traversals a node list and
-    // performs a callback for each ELEMENT_NODE that's found
+    /**
+     * internal function that traversals a node list and performs a callback for each ELEMENT_NODE that's found. 
+     * 
+     * @param {HTMLElement} element 
+     * @param {FuncRef} callback - if the callback returns a value the traversal ends
+     */
+
     var traverse = function (element, callback) {
-        var checkSet = new Set();
-        checkSet.add(element);
-        checkSet.forEach(function (el) {
-            callback(el);
-            for (var i = 0; i < el.children.length; i++) {
-                checkSet.add(el.children[i]);
+        var list = [];
+        list.push(element);
+        while (list.length > 0) {
+            var el = list.pop();
+            if (callback(el)) {
+                return el;
             }
-            checkSet["delete"](el);
-        });
+            for (var i = 0; i < el.children.length; i++) {
+                list.push(el.children[i]);
+            }
+        };
     };
 
     /**
@@ -199,10 +229,45 @@
         if (!element["x-rava"]) {
             return;
         }
-        element["x-rava"].forEach(function (config) {
-            doCallback(element, "removed", config);
+        element["x-rava"].forEach(function (context) {
+            doCallback(element, "removed", context.__config, context);
+            removeReference(element, context);
         });
     };
+
+    var removeReference = function (el, context) {
+        var config = context.__config;
+        if (config.refs) {
+            if (typeof config.refs === "string") {
+                var name = config.refs;
+                if (Array.isArray(context[name])) {
+                    for (var i = 0; i < context[name].length; i++) {
+                        if (context[name][i] === el) {
+                            context[name].splice(i, 1);
+                            break;
+                        }
+                    }
+                    return;
+                }
+                //TODO
+            }
+        }
+    }
+
+    var addReference = function (el, context) {
+        var config = context.__config;
+        if (config.refs) {
+            if (typeof config.refs === "string") {
+                var name = config.refs;
+                if (Array.isArray(context[name])) {
+                    context[name].push(el);
+                    return;
+                }
+                //TODO
+            }
+        }
+    }
+
 
     var wrap = function (node, selector, config) {
         // in the case that this is a scoped configuration
@@ -213,52 +278,63 @@
                 return;
             }
         }
-        var data = config.data || {};
-
-        var configSet = node["x-rava"];
-        if (!configSet) {
-            configSet = new Set();
-            node["x-rava"] = configSet;
+        // check the existing configurations on this element
+        // to see if it has already been configured by us
+        // if it has, do a callback and leave.
+        var ctxSet = node["x-rava"];
+        if (!ctxSet) {
+            ctxSet = [];
+            node["x-rava"] = ctxSet;
         }
-        if (configSet.has(config)) {
-            doCallback(node, "added", config, data);
-            return;
+        for (var i = 0; i < ctxSet.length; i++ ) {
+            var ctx = ctxSet[i];
+            if (ctx.__config === config) {
+                doCallback(node, "added", config, context);
+                addReference(node, ctx);
+                return;
+            }
         }
-        configSet.add(config);
-
-        if (typeof data === "function") {
-            data = data.call(node);
+        
+        // get the data object, either directly, creating it, or calling a function
+        // then create a child object from it to be used by the configuration process
+        var context = config.data || {};
+        if (typeof context === "function") {
+            context = context.call(node);
         }
+        context = Object.create(context);
+        context.__config = config;
+        if (!context.el) {
+            context.el = node;
+        }
+        // add the new context to the context array for reference
+        ctxSet.push(context);
 
         Object.getOwnPropertyNames(config).forEach(function (name) {
             if (name === "events") {
-                handleEvents(node, config, selector, data);
+                handleEvents(node, config, selector, context);
                 return;
             }
             if (name === "methods") {
-                handleMethods(node, config[name]);
+                handleMethods(context, config[name]);
                 return;
             }
             if (name === "callbacks") {
-                handleCallbacks(node, config, selector, data);
+                handleCallbacks(node, config, selector, context);
                 return;
             }
             if (name === "refs") {
-                handleReferences(node, config, selector, data);
+                handleReferences(node, config, selector, context);
                 return;
             }
-            if (startsWith.call(name, "on_")) {
-                handleTopLevelEvents(node, config, selector, data, name);
+            if (startsWith.call(name, "events_")) {
+                handleTopLevelEvents(node, config, selector, context, name);
                 return;
             }
             if (name == "created" || name == "added" || name == "removed" || name == "data" || name == "scoped" || name == "target") {
                 return;
             }
-            if (typeof config[name] === "function") {
-                if (rava.debug) {
-                    console.log("directly mapping function " + name);
-                }
-                handleMethod(node, name, config[name]);
+            if (name == "changes") {
+                handleChanges(node, config, selector, context, name);
                 return;
             }
             if (rava.debug) {
@@ -266,64 +342,62 @@
             }
         });
 
-        doCallback(node, "created", config, data);
-        doCallback(node, "added", config, data);
+        doCallback(node, "created", config, context);
+        doCallback(node, "added", config, context);
     };
 
-    var handleMethods = function (node, funcs) {
+    var handleMethods = function (context, funcs) {
         for (var funcName in funcs) {
-            node[funcName] = funcs[funcName].bind(node);
+            context[funcName] = funcs[funcName].bind(context);
         }
     };
 
-    var handleMethod = function (node, name, func) {
-        node[name] = func.bind(node);
-    };
-
-    var handleEvents = function (node, config, selector, data) {
+    var handleEvents = function (node, config, selector, context) {
         var events = config.events;
-        var target = config.target || node;
         for (var name in events) {
             var value = events[name];
             if (typeof value === "function") {
-                node.addEventListener(name, getEventHandler(config, name, target, data));
+                node.addEventListener(name, getEventHandler(config, name, context));
             } else if (typeof value === "string") {
-                node.addEventListener(name, getEventHandler(target, value, target, data));
+                node.addEventListener(name, getEventHandler(context, value, context));
             } else {
                 var newConfig = {};
-                if (startsWith.call(name.trim(), ':scope')) {
+                var child_selector = name;
+                if (!startsWith.call(child_selector.trim(), ':root')) {
                     newConfig.scoped = node;
+                    child_selector = selector + " " + child_selector;
+                    child_selector = format(node, child_selector).trim();
                 }
                 newConfig.target = node;
                 newConfig.events = value;
-                newConfig.data = data;
-                var extendedSelector = format(node, name.replace(':scope', selector)).trim();
-                rava.bind(extendedSelector, newConfig);
+                newConfig.data = context;
+                rava.bind(child_selector, newConfig);
             }
         }
     };
 
-    var handleTopLevelEvents = function (node, config, selector, data, name) {
-        var key_name = name.substring(3);
+    var handleTopLevelEvents = function (node, config, selector, context, name) {
+        var key_name = name.substring(7);
         var target = config.target || node;
         var value = config[name];
         if (typeof value === "function") {
-            node.addEventListener(key_name, getEventHandler(config, name, target, data));
+            node.addEventListener(key_name, getEventHandler(config, name, context));
         } else if (typeof value == "string") {
-            node.addEventListener(key_name, getEventHandler(target, value, target, data));
+            node.addEventListener(key_name, getEventHandler(context, value, context));
         } else if (typeof value === "object") {
-            for (var ref_selector in value) {
-                var key_value = value[ref_selector];
+            for (var child_selector in value) {
+                var key_value = value[child_selector];
                 var newConfig = {};
-                if (startsWith.call(ref_selector.trim(), ':scope')) {
+                if (!startsWith.call(child_selector.trim(), ':root')) {
                     newConfig.scoped = node;
-                    ref_selector = format(node, ref_selector.replace(':scope', selector)).trim();
+                    child_selector = selector + " " + child_selector;
+                    child_selector = format(node, child_selector).trim();
                 }
                 newConfig.target = node;
                 newConfig.events = {};
                 newConfig.events[key_name] = key_value;
-                newConfig.data = data;
-                rava.bind(ref_selector, newConfig);
+                newConfig.data = context;
+                rava.bind(child_selector, newConfig);
             }
         } else {
             if (rava.debug) {
@@ -332,21 +406,22 @@
         }
     };
 
-    var handleCallbacks = function (node, config, selector, data) {
+    /**
+     * Unlike other configurations, we are only interested in mapping a callback if the callback is a scoped child.
+     * If it's a function, that function will be called by the callback mechanism. We never directly put the callback on the element we're binding.
+     * 
+     * @param {*} node 
+     * @param {*} config 
+     * @param {*} selector 
+     * @param {*} data 
+     */
+    var handleCallbacks = function (node, config, selector, context) {
         var callbacks = config.callbacks;
         if (typeof callbacks === "object") {
             for (var key in callbacks) {
                 var value = callbacks[key];
                 if (typeof value === "object") {
-                    var newConfig = {};
-                    if (startsWith.call(key.trim(), ':scope')) {
-                        newConfig.scoped = node;
-                    }
-                    newConfig.target = config.target || node;
-                    newConfig.callbacks = value;
-                    newConfig.data = data;
-                    var extendedSelector = format(node, key.replace(':scope', selector)).trim();
-                    rava.bind(extendedSelector, newConfig);
+                    childBinding("callbacks", value, selector, key, node, context);
                 }
             }
         } else {
@@ -356,52 +431,105 @@
         }
     };
 
-    var handleReferences = function (node, config, selector, data) {
-        var references = config.refs;
-        if (typeof references === "string") {
-            if (data[references]) {
-                if (!Array.isArray(data[references])) {
-                    var temp = data[references];
-                    data[references] = [temp];
+    var handleReferences = function (node, config, selector, context) {
+        var refObject = config.refs;
+        if (typeof refObject === "string") {
+            addOrExtendProperty(context, refObject, node);
+        } else if (typeof refObject === "object") {
+            for (var ref in refObject) {
+                var ref_selector = refObject[ref];
+                if (Array.isArray(ref_selector)) {
+                    context[ref] = [];
+                    ref_selector.forEach(function (child_selector) {
+                        childBinding("refs", ref, selector, child_selector, node, context);
+                    });
+                } else {
+                    context[ref] = null;
+                    childBinding("refs", ref, selector, ref_selector, node, context);
                 }
-                data[references].push(node);
-            } else {
-                data[references] = node;
-            }
-        } else if (typeof references === "object") {
-            for (var ref_selector in references) {
-                var value = references[ref_selector];
-                var newConfig = {};
-                if (!startsWith.call(ref_selector.trim(), ':root')) {
-                    ref_selector = selector + " " + ref_selector;
-                    newConfig.scoped = node;
-                }
-                newConfig.target = node;
-                newConfig.refs = value;
-                newConfig.data = data;
-                rava.bind(ref_selector, newConfig);
             }
         } else {
             if (rava.debug) {
-                console.log("unknown type " + (typeof references) + " for references");
+                console.log("unknown type " + (typeof refObject) + " for references");
             }
         }
     };
+
+    //rewrite propert 
+    var addOrExtendProperty = function (context, name, value) {
+        if (Array.isArray(context[name])) {
+            context[name].push(value);
+            return;
+        }
+        var object = Object.getPrototypeOf(context);
+        if (object.hasOwnProperty(name)) {
+            Object.defineProperty(context, name, {
+                set: function (value) {
+                    object[name] = value;
+                },
+                enumerable: true
+            });
+        }
+        context[name] = value;
+    };
+
+    /**
+     * When a child binding is identified, this handles the creation and binding of the child configuration
+     * 
+     * 
+     * @param {string} key 
+     * @param {Object} value 
+     * @param {string} parent_selector 
+     * @param {string} child_selector 
+     * @param {HTMLElement} el 
+     * @param {Object} data 
+     */
+    var childBinding = function (propName, propValue, parentSelector, childSelector, targetEl, context) {
+        var newConfig = {};
+        if (!startsWith.call(childSelector.trim(), ':root')) {
+            newConfig.scoped = targetEl;
+            childSelector = parentSelector + " " + childSelector;
+        }
+        newConfig.target = targetEl;
+        newConfig[propName] = propValue;
+        newConfig.data = context;
+        rava.bind(childSelector, newConfig);
+    }
+
+    var handleChanges = function (node, config, selector, data) {
+        if (!data.mutationObserver) {
+            data.mutationObserver = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    handleChangeMutation(mutation, config, data)
+                });
+            });
+        }
+    };
+
+    var handleChangeMutation = function (mutation, config, data) {
+        if (!data.mutationObserver) {
+            data.mutationObserver = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+
+                });
+            });
+        }
+
+    }
 
     /**
      * if there is a target this overrides the default element
      * to be the recipient of the callback.
      * 
-     * @param {HTMLelement} el 
+     * @param {HTMLElement} el 
      * @param {string} name 
      * @param {object} config 
      * @param {object} data 
      */
-    var doCallback = function (el, name, config, data) {
-        var target = config.target || el;
+    var doCallback = function (el, name, config, context) {
         var callbacks = config.callbacks || config;
         if (callbacks[name]) {
-            callbacks[name].call(target, data, el);
+            callbacks[name].call(context, el);
         }
     }
 
@@ -413,9 +541,9 @@
      * @param {HTMLElement} target - called in the context of this element
      * @param {Object} data - common data object
      */
-    var getEventHandler = function (source, name, target, data) {
+    var getEventHandler = function (source, name, data) {
         return function (event) {
-            source[name].call(target, event, data);
+            source[name].call(data, event);
         };
     };
 
@@ -443,7 +571,7 @@
 
     // scriptlets
     // if a default value is defined wrap the object access in a try catch
-    var defValueFunction = "' + (function(){ var _reply = null; try { _reply = '$1'; $3 } catch (e) { _reply = '$2' }; return _reply; })() + '";
+    var defValueFunction = "' + (function(){ var _reply = null; try { _reply = '$1'; if (reply === 'undefined') {_reply = '$2'}} catch (e) { _reply = '$2'; } return _reply; })() + '";
 
     function bodyOfFunction(str) {
         var response = functionStart + str.replace(interpolate, objectReplacer) + functionEnd;
@@ -475,7 +603,7 @@
         // if we have a default value identified then we wrap the initial object access into a try catch
         // and assign the default value in the catch
         if (defStr && defStr.length > 0) {
-            response = defValueFunction.replace("\$1", response).replace("\$2", defStr.trim());
+            response = defValueFunction.replace(/\$1/g, response).replace(/\$2/g, defStr.trim());
         }
         return response;
     }

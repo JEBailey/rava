@@ -27,9 +27,10 @@ rava.bind(".example",{
     <pre class="box prettyprint lang-js">
 rava.bind(".example",{
     callbacks : {
-        "a .special " : {
+        "a[href] " : {
             created : function(data, element){
-                //on initial binding by Rava perform this callback.
+                //when this element is found and bound, perform a callback to this function
+                //with 'this' being the original ".example" element
             },
         },
     }

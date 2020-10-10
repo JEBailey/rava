@@ -51,10 +51,8 @@ rava.bind('time', {
 rava.bind('table', {
     events: {
         // This is an example of direct event handling where the name of the
-        // property
-        // is the event name that is being listened for, in this case, it's the
-        // click
-        // event that is being listened for by the table element
+        // property is the event name that is being listened for, in this case, it's the
+        // click event that is being listened for by the table element
         // This should only fire if you clicked on the table header or footer
         click: function () {
             window.alert("clicked");
@@ -185,7 +183,7 @@ rava.bind("aside", {
     },
     refs: {
         ":root .remote-content": "content",
-        ".menu-list a": "menuItems[]",
+        ".menu-list a": "menuItems",
     },
     events_click: {
         ":root .menu-list a": "menuItemSelected",
