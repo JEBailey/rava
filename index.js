@@ -364,6 +364,7 @@
                 var newConfig = {};
                 var child_selector = name;
                 if (!startsWith.call(child_selector.trim(), ':root')) {
+                    child_selector = child_selector.replace(':scope','');
                     newConfig.scoped = node;
                     child_selector = selector + " " + child_selector;
                     child_selector = format(node, child_selector).trim();
@@ -389,6 +390,7 @@
                 var key_value = value[child_selector];
                 var newConfig = {};
                 if (!startsWith.call(child_selector.trim(), ':root')) {
+                    child_selector = child_selector.replace(':scope','');
                     newConfig.scoped = node;
                     child_selector = selector + " " + child_selector;
                     child_selector = format(node, child_selector).trim();
@@ -487,6 +489,7 @@
     var childBinding = function (propName, propValue, parentSelector, childSelector, targetEl, context) {
         var newConfig = {};
         if (!startsWith.call(childSelector.trim(), ':root')) {
+            childSelector = childSelector.replace(':scope','');
             newConfig.scoped = targetEl;
             childSelector = parentSelector + " " + childSelector;
         }
@@ -546,67 +549,6 @@
             source[name].call(data, event);
         };
     };
-
-    //standard string to use 
-    var functionStart = "var __out='";
-    var functionEnd = "';return __out;";
-
-    //this determins the matching elements that surround the word to be swapped out
-    var interpolate = /\$\{(.+?)\}/g
-
-    // converts first property to bracket notation against the inherent object being passed in
-    // ${foo.bar} => ${__obj['foo'].bar
-    var startProp = /([^\.\[]+)/;
-
-    // convert dot notation to bracket notation property names
-    // ${foo.bar} => ${foo['bar']}
-    var prop2Index = /\.([^\.\[\(]+)/g;
-    //capture .numeric notation(why would you do this?)
-    //${foo.1} => ${foo[1]}
-    var num2Index = /\.(\d+)/g;
-    // searches for just a default value
-    var defValue = /([^\|]+?)\|([^\|]+)/;
-    //searches for the last right bracket
-    var lastBracket = /(\][^\]])*$/
-
-    // scriptlets
-    // if a default value is defined wrap the object access in a try catch
-    var defValueFunction = "' + (function(){ var _reply = null; try { _reply = '$1'; if (reply === 'undefined') {_reply = '$2'}} catch (e) { _reply = '$2'; } return _reply; })() + '";
-
-    function bodyOfFunction(str) {
-        var response = functionStart + str.replace(interpolate, objectReplacer) + functionEnd;
-        if (rava.debug) {
-            console.log("post compilation : " + response);
-        }
-        response = response.replace(/(?:\r|\n)/g, '');
-        return response;
-    }
-
-    function objectReplacer(_overallMatch, match1) {
-        var options, defStr = null;
-        if (defValue.test(match1)) {
-            options = match1.match(defValue);
-            match1 = options[1];
-            defStr = options[2];
-        }
-        // we're modifying the first property declaration and append it to the internal object identifier
-        // we do this so that accessing the passed in property is easier and doesn't rely on using the
-        // 'with' command.
-        var response = match1.trim().replace(startProp, "' + __obj['$1']");
-        // replacing any dot notation with bracket notation. If the dot notation has a numeric value we
-        // don't quote it
-        response = response.replace(num2Index, "\[$1\]").replace(prop2Index, "['$1']");
-
-        // find the last bracket and add the beginning of a string to coerce the response into a string
-        response = response.replace(lastBracket, " +'");
-
-        // if we have a default value identified then we wrap the initial object access into a try catch
-        // and assign the default value in the catch
-        if (defStr && defStr.length > 0) {
-            response = defValueFunction.replace(/\$1/g, response).replace(/\$2/g, defStr.trim());
-        }
-        return response;
-    }
 
     if (typeof define === 'function' && define.amd) {
         define(rava);
