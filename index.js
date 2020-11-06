@@ -249,7 +249,7 @@
                     }
                     return;
                 }
-                //TODO
+                context[name] = null;
             }
         }
     }
@@ -263,7 +263,7 @@
                     context[name].push(el);
                     return;
                 }
-                //TODO
+                context[name] = el;
             }
         }
     }
@@ -433,21 +433,30 @@
         }
     };
 
-    var handleReferences = function (node, config, selector, context) {
+    var handleReferences = function (el, config, selector, context) {
         var refObject = config.refs;
         if (typeof refObject === "string") {
-            addOrExtendProperty(context, refObject, node);
+            if (Array.isArray(context[refObject])) {
+                context[refObject].push(value);
+                return;
+            }
+            var proto = Object.getPrototypeOf(context);
+            if (proto.hasOwnProperty(refObject)) {
+                proto[refObject] = el;
+                return;
+            }
+            console.log("warning - attempting to directly bind current el to data context - no binding occurred");
         } else if (typeof refObject === "object") {
             for (var ref in refObject) {
                 var ref_selector = refObject[ref];
                 if (Array.isArray(ref_selector)) {
                     context[ref] = [];
                     ref_selector.forEach(function (child_selector) {
-                        childBinding("refs", ref, selector, child_selector, node, context);
+                        childBinding("refs", ref, selector, child_selector, el, context);
                     });
                 } else {
                     context[ref] = null;
-                    childBinding("refs", ref, selector, ref_selector, node, context);
+                    childBinding("refs", ref, selector, ref_selector, el, context);
                 }
             }
         } else {
@@ -457,7 +466,7 @@
         }
     };
 
-    //rewrite propert 
+    //rewrite property 
     var addOrExtendProperty = function (context, name, value) {
         if (Array.isArray(context[name])) {
             context[name].push(value);
