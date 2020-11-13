@@ -36,6 +36,26 @@
         position = position || 0;
         return this.substr(position, searchString.length) === searchString;
     };
+    // polyfill to support IE 11
+    var customEvent = (function () {
+        if (typeof window.CustomEvent === "function") {
+            return window.CustomEvent;
+        }
+        return function (event, params) {
+            params = params || { bubbles: false, cancelable: false, detail: null };
+            var evt = document.createEvent('CustomEvent');
+            evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+            return evt;
+        }
+    })();
+
+    //During selector querying a class with an unescaped dash '-' in the name is not correctly found 
+    var escape = function (sel) {
+        var reply = sel.replace(/([^\\])([@-])/g, function (ch, p1, p2) {
+            return p1 + "\\" + p2;
+        });
+        return reply.trim();
+    };
 
     // customized templating based on data- values. For any {foo} in the provided string we will
     // look for data-foo on the provided element and perform a subsitution for the value if found
@@ -56,43 +76,45 @@
         return string;
     }
 
-    // polyfill to support IE 11
-    var customEvent = (function () {
-        if (typeof window.CustomEvent === "function") {
-            return window.CustomEvent;
-        }
-        return function (event, params) {
-            params = params || { bubbles: false, cancelable: false, detail: null };
-            var evt = document.createEvent('CustomEvent');
-            evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
-            return evt;
-        }
-    })();
-
-    //During selector querying a class with an unescaped dash '-' in the name is not correctly found 
-    var escape = function (sel) {
-        return sel.replace(/^[\\]-/g, function (ch) {
-            return "\\" + ch;
-        });
-    };
+    var model_attr = "@model";
 
     /**
      * binds the elements that match the provided css selector with a specific configuration
      * then uses the css selector to find all the matching elements to configure.
      * After the initial configuration, rava then establishes a listener for any additional
-     *  matching elements
+     * matching elements.
      * 
-     * @param {string | selector} selector - CSS styled selector for an object
+     * If you provide an HTMLElement or 
+     * 
+     * @param {string | HTMLElement} selector - CSS styled selector for an object
      * @param {object} config - Configuration Object
      */
     rava.bind = function (selector, config) {
+        if (selector.nodeType) {
+            if (selector.nodeType === 1) {
+                wrap(selector, "", config);
+                return;
+            }
+            if (selector.nodeType === 11) {
+                var children = selector.content || selector.children;
+                var length = children.length;
+                for (var i = 0; i < length; i++) {
+                    var el = children[i];
+                    wrap(el, "", config);
+                }
+                return;
+            }
+            console.warn("unable to bind - unknown node of type " + selector.nodeType);
+            return;
+        }
+        selector = escape(selector);
         var tagSet = tagSelectors.get(selector);
         if (!tagSet) {
             tagSet = new Set();
             tagSelectors.set(selector, tagSet);
         }
         tagSet.add(config);
-        var found = document.querySelectorAll(escape(selector));
+        var found = document.querySelectorAll(selector);
         if (found) {
             forEach.call(found, function (node) {
                 wrap(node, selector, config);
@@ -144,19 +166,6 @@
         el.dispatchEvent(event);
     }
 
-    /**
-     * Generates a Function from the string parameter. The returned Function 
-     * take an Object which is then used to map values into a new string.
-     * 
-     * @param {string} string 
-     */
-    rava.template = function (string) {
-        if (rava.debug) {
-            console.log("pre compilation : " + string);
-        }
-        return new Function("__obj", bodyOfFunction(string));
-    }
-
     // mutation observer to monitor the whole document
     new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
@@ -181,12 +190,11 @@
     };
 
     /**
-     * internal function that traversals a node list and performs a callback for each ELEMENT_NODE that's found. 
+     * internal function that traverses a node list and performs a callback for each ELEMENT_NODE that's found. 
      * 
      * @param {HTMLElement} element 
      * @param {FuncRef} callback - if the callback returns a value the traversal ends
      */
-
     var traverse = function (element, callback) {
         var list = [];
         list.push(element);
@@ -229,199 +237,306 @@
         if (!element["x-rava"]) {
             return;
         }
-        element["x-rava"].forEach(function (context) {
-            doCallback(element, "removed", context.__config, context);
-            removeReference(element, context);
+        element["x-rava"].forEach(function (data) {
+            doCallback(element, "removed", data.__config, data);
+            removeReference(element, data);
         });
     };
 
-    var removeReference = function (el, context) {
-        var config = context.__config;
+    var removeReference = function (el, data) {
+        var config = data.__config;
         if (config.refs) {
             if (typeof config.refs === "string") {
                 var name = config.refs;
-                if (Array.isArray(context[name])) {
-                    for (var i = 0; i < context[name].length; i++) {
-                        if (context[name][i] === el) {
-                            context[name].splice(i, 1);
+                if (Array.isArray(data[name])) {
+                    for (var i = 0; i < data[name].length; i++) {
+                        if (data[name][i] === el) {
+                            data[name].splice(i, 1);
                             break;
                         }
                     }
                     return;
                 }
-                //TODO
+                data[name] = null;
             }
         }
     }
 
-    var addReference = function (el, context) {
-        var config = context.__config;
+    var addReference = function (el, data) {
+        var config = data.__config;
         if (config.refs) {
             if (typeof config.refs === "string") {
                 var name = config.refs;
-                if (Array.isArray(context[name])) {
-                    context[name].push(el);
+                if (Array.isArray(data[name])) {
+                    data[name].push(el);
                     return;
                 }
-                //TODO
+                data[name] = el;
             }
         }
     }
 
 
-    var wrap = function (node, selector, config) {
+    var wrap = function (el, selector, config) {
         // in the case that this is a scoped configuration
         // we only match on child elements of the specific 
         // parent element
         if (config.scoped) {
-            if (!config.scoped.contains(node)) {
+            if (!config.scoped.contains(el)) {
                 return;
             }
         }
         // check the existing configurations on this element
         // to see if it has already been configured by us
         // if it has, do a callback and leave.
-        var ctxSet = node["x-rava"];
-        if (!ctxSet) {
-            ctxSet = [];
-            node["x-rava"] = ctxSet;
+        var dataSet = el["x-rava"];
+        if (!dataSet) {
+            dataSet = [];
+            el["x-rava"] = dataSet;
         }
-        for (var i = 0; i < ctxSet.length; i++ ) {
-            var ctx = ctxSet[i];
-            if (ctx.__config === config) {
-                doCallback(node, "added", config, context);
-                addReference(node, ctx);
+        for (var i = 0; i < dataSet.length; i++) {
+            var dataItem = dataSet[i];
+            if (dataItem.__config === config) {
+                doCallback(el, "added", config, data);
+                addReference(el, dataItem);
                 return;
             }
         }
-        
-        // get the data object, either directly, creating it, or calling a function
-        // then create a child object from it to be used by the configuration process
-        var context = config.data || {};
-        if (typeof context === "function") {
-            context = context.call(node);
+
+        // get the data object, either directly, creating it, or calling a 
+        // function then create a child object from it to be used by the 
+        // configuration process. if the config is a result of a child binding
+        // then use the provided data object as is
+        var data = config.data || {};
+
+        if (typeof data === "function") {
+            data = data.call(el);
         }
-        context = Object.create(context);
-        context.__config = config;
-        if (!context.el) {
-            context.el = node;
+        data = Object.create(data);
+        data.__config = config;
+        if (!data.el) {
+            data.el = el;
         }
         // add the new context to the context array for reference
-        ctxSet.push(context);
+        dataSet.push(data);
+
+        if (config.isChild) {
+            data = Object.getPrototypeOf(data);
+        }
 
         Object.getOwnPropertyNames(config).forEach(function (name) {
             if (name === "events") {
-                handleEvents(node, config, selector, context);
+                handleEvents(el, config, selector, data);
+            } else if (name === "methods") {
+                handleMethods(data, config[name]);
+            } else if (name === "callbacks") {
+                handleCallbacks(el, config, selector, data);
+            } else if (name === "refs") {
+                handleReferences(el, config, selector, data);
+            } else if (name === "model") {
+                handleModel(el, config, selector, data);
+            } else if (startsWith.call(name, "events_")) {
+                handleTopLevelEvents(el, config, selector, data, name);
+            } else if (name === "attr_changes") {
+                handleChanges(el, config, selector, data, name);
+            } else if (name == "created" || name == "added" || name == "removed" || name == "data" || name == "scoped" || name == "isChild") {
                 return;
-            }
-            if (name === "methods") {
-                handleMethods(context, config[name]);
-                return;
-            }
-            if (name === "callbacks") {
-                handleCallbacks(node, config, selector, context);
-                return;
-            }
-            if (name === "refs") {
-                handleReferences(node, config, selector, context);
-                return;
-            }
-            if (startsWith.call(name, "events_")) {
-                handleTopLevelEvents(node, config, selector, context, name);
-                return;
-            }
-            if (name == "created" || name == "added" || name == "removed" || name == "data" || name == "scoped" || name == "target") {
-                return;
-            }
-            if (name == "changes") {
-                handleChanges(node, config, selector, context, name);
-                return;
-            }
-            if (rava.debug) {
+            } else if (rava.debug) {
                 console.log("unknown configuration of " + name);
             }
         });
 
-        doCallback(node, "created", config, context);
-        doCallback(node, "added", config, context);
-    };
-
-    var handleMethods = function (context, funcs) {
-        for (var funcName in funcs) {
-            context[funcName] = funcs[funcName].bind(context);
+        if (el.hasAttribute && el.hasAttribute(model_attr)) {
+            handleModelAttribute(el, selector, data);
         }
+
+        doCallback(el, "created", config, data);
+        doCallback(el, "added", config, data);
     };
 
-    var handleEvents = function (node, config, selector, context) {
-        var events = config.events;
-        for (var name in events) {
-            var value = events[name];
-            if (typeof value === "function") {
-                node.addEventListener(name, getEventHandler(config, name, context));
-            } else if (typeof value === "string") {
-                node.addEventListener(name, getEventHandler(context, value, context));
-            } else {
-                var newConfig = {};
-                var child_selector = name;
-                if (!startsWith.call(child_selector.trim(), ':root')) {
-                    newConfig.scoped = node;
-                    child_selector = selector + " " + child_selector;
-                    child_selector = format(node, child_selector).trim();
+    var handleModelAttribute = function (el, selector, data) {
+        var attr_value = el.getAttribute(model_attr);
+        var attr_selector = escape("[" + model_attr + "=\"" + attr_value + "\"]");
+        if (selector.indexOf(attr_selector) >= 0) {
+            if (!data.model.cache[attr_value]) {
+                data.model.cache[attr_value] = [];
+            }
+            data.model.cache[attr_value].push(el);
+            addModelEvent(el, selector, data, attr_value);
+            var tagName = el.tagName.toLowerCase();
+            var modelValue = data.model[attr_value];
+
+            if (tagName === "input") {
+                if (el.value) {
+                    data.model[attr_value] = el.value;
+                } else if (modelValue) {
+                    el.value = modelValue;
                 }
-                newConfig.target = node;
-                newConfig.events = value;
-                newConfig.data = context;
+            } else {
+                if (modelValue) {
+                    el.innerText = modelValue;
+                }
+            }
+
+        }
+    }
+
+    var addModelEvent = function (el, selector, data, value) {
+        var newConfig = {};
+        newConfig.events = {};
+        newConfig.events.input = modelCallback(value);
+        handleEvents(el, newConfig, selector, data);
+    }
+
+    var modelCallback = function (value) {
+        return function (event) {
+            var update = event.target.value;
+            this.model[value] = update;
+        }
+    }
+
+
+    var handleModel = function (el, config, selector, data) {
+        if (!config.model.cache) {
+            Object.defineProperty(config.model, "cache", {
+                value: {},
+                writeable: false,
+                enumerable: false
+            });
+        };
+        var model = Object.create(config.model);
+        data.model = model;
+        for (var name in model) {
+            var descriptor = Object.getOwnPropertyDescriptor(model, name);
+            if (!descriptor) {
+                descriptor = Object.getOwnPropertyDescriptor(config.model, name);
+            }
+            if (descriptor) {
+                extendProperty(model, name);
+                var newConfig = {};
+                var child_selector = "[$1=\"$2\"]".replace("$1", model_attr).replace("$2", name);
+                newConfig.isChild = true;
+                newConfig.scoped = el;
+                child_selector = selector + " " + child_selector;
+                newConfig.data = data;
                 rava.bind(child_selector, newConfig);
             }
         }
     };
 
-    var handleTopLevelEvents = function (node, config, selector, context, name) {
+    //rewrite property 
+    var extendProperty = function (model, name) {
+        var object = Object.getPrototypeOf(model);
+        Object.defineProperty(model, name, {
+            set: function (value) {
+                var cache = object.cache;
+                if (!cache[name]){
+                    cache[name] = [];
+                }
+                var array = cache[name];
+                array.forEach(function (el) {
+                    el.innerText = value;
+                });
+                object[name] = value;
+            },
+            get: function () {
+                return object[name];
+            },
+            enumerable: true
+        });
+    };
+
+    var handleMethods = function (data, funcs) {
+        for (var funcName in funcs) {
+            data[funcName] = funcs[funcName].bind(data);
+        }
+    };
+
+    var handleEvents = function (el, config, selector, data) {
+        var configObject = config["events"];
+        for (var key in configObject) {
+            var value = configObject[key];
+            if (typeof value === "function") {
+                el.addEventListener(key, getEventHandler(configObject, key, data));
+            } else if (typeof value === "string") {
+                el.addEventListener(key, getEventHandler(data, value, data));
+            } else {
+                var newConfig = {};
+                var child_selector = key;
+                if (!startsWith.call(child_selector.trim(), ':root')) {
+                    child_selector = child_selector.replace(':scope', '');
+                    newConfig.scoped = el;
+                    child_selector = selector + " " + child_selector;
+                    child_selector = format(el, child_selector).trim();
+                }
+                newConfig.isChild = true;
+                newConfig.events = value;
+                newConfig.data = data;
+                rava.bind(child_selector, newConfig);
+            }
+        }
+    };
+
+    var handleChanges = function (el, config, selector, data) {
+        var configObject = config["attr_changes"];
+        for (var key in configObject) {
+            var possibleFunc = configObject[key];
+            if (typeof possibleFunc === "function") {
+                registerChangeListener(el, key);
+                el.addEventListener("attr_change_" + key, getEventHandler(configObject, name, data));
+            } else if (typeof value === "string") {
+                el.addEventListener("attr_change_" + key, getEventHandler(data, value, data));
+            } else {
+                var newConfig = {};
+                if (startsWith.call(key.trim(), ':scope')) {
+                    newConfig.scoped = el;
+                }
+                newConfig.isChild = true;
+                newConfig.changes = possibleFunc;
+                newConfig.data = data;
+                var extendedSelector = format(el, key.replace(':scope', selector)).trim();
+                rava.bind(extendedSelector, newConfig);
+            }
+        }
+    }
+
+    var handleTopLevelEvents = function (el, config, selector, data, name) {
         var key_name = name.substring(7);
-        var target = config.target || node;
         var value = config[name];
-        if (typeof value === "function") {
-            node.addEventListener(key_name, getEventHandler(config, name, context));
-        } else if (typeof value == "string") {
-            node.addEventListener(key_name, getEventHandler(context, value, context));
+        var newConfig = {};
+        var newEvents = newConfig.events = {};
+        if (typeof value === "function" || typeof value === "string") {
+            newEvents[key_name] = value;
         } else if (typeof value === "object") {
             for (var child_selector in value) {
                 var key_value = value[child_selector];
-                var newConfig = {};
-                if (!startsWith.call(child_selector.trim(), ':root')) {
-                    newConfig.scoped = node;
-                    child_selector = selector + " " + child_selector;
-                    child_selector = format(node, child_selector).trim();
-                }
-                newConfig.target = node;
-                newConfig.events = {};
-                newConfig.events[key_name] = key_value;
-                newConfig.data = context;
-                rava.bind(child_selector, newConfig);
+                newEvents[child_selector] = {};
+                newEvents[child_selector][key_name] = key_value;
             }
         } else {
             if (rava.debug) {
                 console.log("unknown type " + (typeof value) + " for value of " + name + "in config");
             }
         }
+        handleEvents(el, newConfig, selector, data);
     };
 
     /**
      * Unlike other configurations, we are only interested in mapping a callback if the callback is a scoped child.
      * If it's a function, that function will be called by the callback mechanism. We never directly put the callback on the element we're binding.
      * 
-     * @param {*} node 
+     * @param {*} el 
      * @param {*} config 
      * @param {*} selector 
      * @param {*} data 
      */
-    var handleCallbacks = function (node, config, selector, context) {
+    var handleCallbacks = function (el, config, selector, data) {
         var callbacks = config.callbacks;
         if (typeof callbacks === "object") {
             for (var key in callbacks) {
                 var value = callbacks[key];
                 if (typeof value === "object") {
-                    childBinding("callbacks", value, selector, key, node, context);
+                    childBinding("callbacks", value, selector, key, el, data);
                 }
             }
         } else {
@@ -431,21 +546,29 @@
         }
     };
 
-    var handleReferences = function (node, config, selector, context) {
+    var handleReferences = function (el, config, selector, data) {
         var refObject = config.refs;
         if (typeof refObject === "string") {
-            addOrExtendProperty(context, refObject, node);
+            if (Array.isArray(data[refObject])) {
+                data[refObject].push(el);
+                return;
+            }
+            if (!data[refObject]) {
+                data[refObject] = el;
+                return;
+            }
+            console.log("unable to bind " + el + " to existing binding of " + refObject);
         } else if (typeof refObject === "object") {
             for (var ref in refObject) {
                 var ref_selector = refObject[ref];
                 if (Array.isArray(ref_selector)) {
-                    context[ref] = [];
+                    data[ref] = [];
                     ref_selector.forEach(function (child_selector) {
-                        childBinding("refs", ref, selector, child_selector, node, context);
+                        childBinding("refs", ref, selector, child_selector, el, data);
                     });
                 } else {
-                    context[ref] = null;
-                    childBinding("refs", ref, selector, ref_selector, node, context);
+                    data[ref] = null;
+                    childBinding("refs", ref, selector, ref_selector, el, data);
                 }
             }
         } else {
@@ -455,66 +578,38 @@
         }
     };
 
-    //rewrite propert 
-    var addOrExtendProperty = function (context, name, value) {
-        if (Array.isArray(context[name])) {
-            context[name].push(value);
-            return;
-        }
-        var object = Object.getPrototypeOf(context);
-        if (object.hasOwnProperty(name)) {
-            Object.defineProperty(context, name, {
-                set: function (value) {
-                    object[name] = value;
-                },
-                enumerable: true
-            });
-        }
-        context[name] = value;
-    };
-
     /**
      * When a child binding is identified, this handles the creation and binding of the child configuration
      * 
      * 
-     * @param {string} key 
-     * @param {Object} value 
-     * @param {string} parent_selector 
-     * @param {string} child_selector 
-     * @param {HTMLElement} el 
+     * @param {string} propName 
+     * @param {Object} propValue 
+     * @param {string} parentSelector 
+     * @param {string} childSelector 
+     * @param {HTMLElement} targetEl 
      * @param {Object} data 
      */
-    var childBinding = function (propName, propValue, parentSelector, childSelector, targetEl, context) {
+    var childBinding = function (propName, propValue, parentSelector, childSelector, targetEl, data) {
         var newConfig = {};
         if (!startsWith.call(childSelector.trim(), ':root')) {
+            childSelector = childSelector.replace(':scope', '');
             newConfig.scoped = targetEl;
             childSelector = parentSelector + " " + childSelector;
         }
-        newConfig.target = targetEl;
+        newConfig.isChild = true;
         newConfig[propName] = propValue;
-        newConfig.data = context;
+        newConfig.data = data;
         rava.bind(childSelector, newConfig);
     }
 
-    var handleChanges = function (node, config, selector, data) {
-        if (!data.mutationObserver) {
-            data.mutationObserver = new MutationObserver(function (mutations) {
-                mutations.forEach(function (mutation) {
-                    handleChangeMutation(mutation, config, data)
-                });
-            });
-        }
-    };
+    var registerChangeListener = function (node, key) {
+        var attributeConfig = {
+            attributes: true,
+            attributeOldValue: true,
+        };
 
-    var handleChangeMutation = function (mutation, config, data) {
-        if (!data.mutationObserver) {
-            data.mutationObserver = new MutationObserver(function (mutations) {
-                mutations.forEach(function (mutation) {
-
-                });
-            });
-        }
-
+        attributeConfig.filter = [key];
+        attributeListener.observe(node, attributeConfig)
     }
 
     /**
@@ -526,10 +621,10 @@
      * @param {object} config 
      * @param {object} data 
      */
-    var doCallback = function (el, name, config, context) {
+    var doCallback = function (el, name, config, data) {
         var callbacks = config.callbacks || config;
         if (callbacks[name]) {
-            callbacks[name].call(context, el);
+            callbacks[name].call(data, el);
         }
     }
 
@@ -538,7 +633,6 @@
      * 
      * @param {HTMLElement | Object} source - object which holds the function
      * @param {string} name - name of the function to be called
-     * @param {HTMLElement} target - called in the context of this element
      * @param {Object} data - common data object
      */
     var getEventHandler = function (source, name, data) {
@@ -546,67 +640,6 @@
             source[name].call(data, event);
         };
     };
-
-    //standard string to use 
-    var functionStart = "var __out='";
-    var functionEnd = "';return __out;";
-
-    //this determins the matching elements that surround the word to be swapped out
-    var interpolate = /\$\{(.+?)\}/g
-
-    // converts first property to bracket notation against the inherent object being passed in
-    // ${foo.bar} => ${__obj['foo'].bar
-    var startProp = /([^\.\[]+)/;
-
-    // convert dot notation to bracket notation property names
-    // ${foo.bar} => ${foo['bar']}
-    var prop2Index = /\.([^\.\[\(]+)/g;
-    //capture .numeric notation(why would you do this?)
-    //${foo.1} => ${foo[1]}
-    var num2Index = /\.(\d+)/g;
-    // searches for just a default value
-    var defValue = /([^\|]+?)\|([^\|]+)/;
-    //searches for the last right bracket
-    var lastBracket = /(\][^\]])*$/
-
-    // scriptlets
-    // if a default value is defined wrap the object access in a try catch
-    var defValueFunction = "' + (function(){ var _reply = null; try { _reply = '$1'; if (reply === 'undefined') {_reply = '$2'}} catch (e) { _reply = '$2'; } return _reply; })() + '";
-
-    function bodyOfFunction(str) {
-        var response = functionStart + str.replace(interpolate, objectReplacer) + functionEnd;
-        if (rava.debug) {
-            console.log("post compilation : " + response);
-        }
-        response = response.replace(/(?:\r|\n)/g, '');
-        return response;
-    }
-
-    function objectReplacer(_overallMatch, match1) {
-        var options, defStr = null;
-        if (defValue.test(match1)) {
-            options = match1.match(defValue);
-            match1 = options[1];
-            defStr = options[2];
-        }
-        // we're modifying the first property declaration and append it to the internal object identifier
-        // we do this so that accessing the passed in property is easier and doesn't rely on using the
-        // 'with' command.
-        var response = match1.trim().replace(startProp, "' + __obj['$1']");
-        // replacing any dot notation with bracket notation. If the dot notation has a numeric value we
-        // don't quote it
-        response = response.replace(num2Index, "\[$1\]").replace(prop2Index, "['$1']");
-
-        // find the last bracket and add the beginning of a string to coerce the response into a string
-        response = response.replace(lastBracket, " +'");
-
-        // if we have a default value identified then we wrap the initial object access into a try catch
-        // and assign the default value in the catch
-        if (defStr && defStr.length > 0) {
-            response = defValueFunction.replace(/\$1/g, response).replace(/\$2/g, defStr.trim());
-        }
-        return response;
-    }
 
     if (typeof define === 'function' && define.amd) {
         define(rava);
