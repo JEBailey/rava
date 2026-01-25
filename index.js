@@ -21,6 +21,8 @@
     "use strict";
     var rava = {};
     var tagSelectors = new Map();
+    // WeakMap to store configuration sets for elements
+    var elementConfigs = new WeakMap();
 
     var matches = Element.prototype.matches
         || Element.prototype.msMatchesSelector;
@@ -106,10 +108,11 @@
     };
 
     var removed = function (element) {
-        if (!element["x-rava"]) {
+        var configSet = elementConfigs.get(element);
+        if (!configSet) {
             return;
         }
-        element["x-rava"].forEach(function (config) {
+        configSet.forEach(function (config) {
             doCallback(element, "removed", config);
         });
     };
@@ -122,10 +125,10 @@
         }
         var data = config.data || {};
 
-        var configSet = node["x-rava"];
+        var configSet = elementConfigs.get(node);
         if (!configSet) {
             configSet = new Set();
-            node["x-rava"] = configSet;
+            elementConfigs.set(node, configSet);
         }
         if (configSet.has(config)) {
             doCallback(node, "added", config, data);
@@ -207,6 +210,11 @@
         return function (event) {
             func.call(target, event, data);
         };
+    };
+
+    // Helper function for testing to check if an element has configurations
+    rava._getElementConfigs = function(element) {
+        return elementConfigs.get(element);
     };
 
     if (typeof define === 'function' && define.amd) {

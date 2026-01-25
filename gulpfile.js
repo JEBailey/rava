@@ -17,23 +17,43 @@
 var gulp = require ('gulp');
 var concat = require ('gulp-concat');
 var uglify = require ('gulp-terser');
+var { spawn } = require('child_process');
 
 var paths = {
-    core : 'index.js'
+    core : 'index.js',
+    tests: 'test/**/*.test.js'
 };
 
-gulp.task ('core', function() {
+function core() {
     return gulp.src (paths.core)
     .pipe (concat ('rava.js'))
     .pipe (gulp.dest ('dist/'));
-});
+}
 
-gulp.task ('minify', function() {
+function minify() {
     return gulp.src (paths.core)
     .pipe (uglify ())
     .pipe (concat ('rava.min.js'))
     .pipe (gulp.dest ('dist/'));
-});
+}
 
-gulp.task ('default',['core','minify'], function() {
-});
+function test(cb) {
+    const mochaProcess = spawn('npx', ['mocha', paths.tests], { stdio: 'inherit' });
+    mochaProcess.on('close', (code) => {
+        cb(code === 0 ? null : new Error(`Mocha exited with code ${code}`));
+    });
+}
+
+function testWatch() {
+    return gulp.watch([paths.core, paths.tests], test);
+}
+
+// Define tasks
+gulp.task('core', core);
+gulp.task('minify', minify);
+gulp.task('test', test);
+gulp.task('test:watch', testWatch);
+
+// Default task
+gulp.task('default', gulp.parallel(core, minify));
+gulp.task('build', gulp.parallel(core, minify, test));

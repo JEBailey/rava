@@ -5,3 +5,39 @@ Rava is designed to assist with websites with simple dynamic content where conte
 ## How
 Rava allows you to bind functions and event handlers to HTML elements defined by a CSS selector. This binding will occur on all existing elements as well as additional elements that are later added to the page.
 
+## Development
+
+### Building
+To build the library, run:
+```
+npm install
+gulp
+```
+
+This will create both the regular and minified versions in the `dist` directory.
+
+### Testing
+The project uses Mocha and Chai for testing. To run the tests:
+
+```
+npm test
+```
+
+Or using Gulp:
+
+```
+gulp test
+```
+
+For development with continuous testing:
+
+```
+npm run test:watch
+```
+
+Or using Gulp:
+
+```
+gulp test:watch
+```
+

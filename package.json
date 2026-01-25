@@ -10,15 +10,20 @@
   },
   "main": "index.js",
   "devDependencies": {
-    "gulp": "^3.9.1",
+    "gulp": "^5.0.1",
     "gulp-concat": "^2.6.1",
-    "gulp-terser": "^1.1.5"
+    "gulp-terser": "^2.1.0",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "jsdom": "^22.1.0",
+    "jsdom-global": "^3.0.2"
   },
   "bugs": {
     "url": "https://github.com/JEBailey/rava/issues"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha",
+    "test:watch": "mocha --watch"
   },
   "keywords": [
     "dynamic-content",
