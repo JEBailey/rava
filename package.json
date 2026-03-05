@@ -15,7 +15,7 @@
     "gulp-terser": "^2.1.0",
     "mocha": "^10.2.0",
     "chai": "^4.3.7",
-    "jsdom": "^22.1.0",
+    "jsdom": "^28.1.0",
     "jsdom-global": "^3.0.2"
   },
   "bugs": {
